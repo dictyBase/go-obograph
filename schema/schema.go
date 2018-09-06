@@ -1,3 +1,5 @@
+// Package schema provides type definitions for decoding OBO Graphs in JSON
+// format
 package schema
 
 // OboJSON models the entire JSON schema of OBO Graph
