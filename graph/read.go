@@ -26,8 +26,10 @@ func BuildGraph(r io.Reader) (OboGraph, error) {
 		internal.ExtractID(og.ID),
 		og.ID,
 	)
-	// Add the is_a term
+	// Add the various owl concepts as obo terms
 	g.AddTerm(buildIsaTerm())
+	g.AddTerm(buildsubPropertyTerm())
+	g.AddTerm(buildinverseOfTerm())
 	for _, jn := range og.Nodes {
 		g.AddTerm(buildTerm(jn))
 	}
@@ -67,6 +69,24 @@ func buildTerm(jn *schema.JSONNode) Term {
 		jn.JSONType,
 		jn.Lbl,
 		jn.ID,
+	)
+}
+
+func buildinverseOfTerm() Term {
+	return NewTerm(
+		NodeID("inverseOf"),
+		"PROPERTY",
+		"inverseOf",
+		"http://www.w3.org/2000/01/rdf-schema#rdfs:inverseOf",
+	)
+}
+
+func buildsubPropertyTerm() Term {
+	return NewTerm(
+		NodeID("subPropertyOf"),
+		"PROPERTY",
+		"subPropertyOf",
+		"http://www.w3.org/2000/01/rdf-schema#rdfs:subPropertyOf",
 	)
 }
 
