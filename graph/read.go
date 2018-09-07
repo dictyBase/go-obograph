@@ -26,6 +26,8 @@ func BuildGraph(r io.Reader) (OboGraph, error) {
 		internal.ExtractID(og.ID),
 		og.ID,
 	)
+	// Add the is_a term
+	g.AddTerm(buildIsaTerm())
 	for _, jn := range og.Nodes {
 		g.AddTerm(buildTerm(jn))
 	}
@@ -55,6 +57,16 @@ func buildTerm(jn *schema.JSONNode) Term {
 		jn.JSONType,
 		jn.Lbl,
 		jn.ID,
+	)
+}
+
+func buildIsaTerm() Term {
+	return NewTerm(
+		NodeID("is_a"),
+		model.NewMeta(&model.MetaOptions{}),
+		"PROPERTY",
+		"is_a",
+		"http://www.w3.org/2000/01/rdf-schema#rdfs:subClassOf",
 	)
 }
 
