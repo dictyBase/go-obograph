@@ -32,17 +32,20 @@ type OboJSONGraph struct {
 // JSONMeta models the meta section of OBO graph
 type JSONMeta struct {
 	BasicPropertyValues []*JSONProperty `json:"basicPropertyValues"`
-	Subsets             []string        `json:"subsets"`
-	Version             string          `json:"version"`
 	Synonyms            []*JSONSynonym  `json:"synonyms"`
+	Subsets             []string        `json:"subsets"`
 	Comments            []string        `json:"comments"`
-	Definition          struct {
-		Val   string   `json:"val"`
-		Xrefs []string `json:"xrefs"`
-	} `json:"definition"`
-	Xrefs []struct {
+	Definition          *JSONDefintion  `json:"definition"`
+	Version             string          `json:"version"`
+	Xrefs               []struct {
 		Val string `json:"val"`
 	} `json:"xrefs"`
+}
+
+// JSONDefintion models the definition subsection of meta section
+type JSONDefintion struct {
+	Val   string   `json:"val"`
+	Xrefs []string `json:"xrefs"`
 }
 
 // JSONEdge models the edges of OBO graph
