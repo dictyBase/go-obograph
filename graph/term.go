@@ -1,7 +1,7 @@
 package graph
 
 import (
-	"github.com/dictyBase/obograph/model"
+	"github.com/dictyBase/go-obograph/model"
 )
 
 // Term is an interface for obo term(node)
@@ -27,8 +27,18 @@ type node struct {
 	iri     string
 }
 
-// NewTerm is the constructor for Term
-func NewTerm(id NodeID, m *model.Meta, rdfType, lbl, iri string) Term {
+// NewTerm is the constructor for Term without metadata
+func NewTerm(id NodeID, rdfType, lbl, iri string) Term {
+	return &node{
+		id:      id,
+		rdfType: rdfType,
+		lbl:     lbl,
+		iri:     iri,
+	}
+}
+
+// NewTermWithMeta is the constructor for Term with metadata
+func NewTermWithMeta(id NodeID, m *model.Meta, rdfType, lbl, iri string) Term {
 	return &node{
 		id:      id,
 		meta:    m,
@@ -45,7 +55,10 @@ func (n *node) ID() NodeID {
 
 // Meta returns the term's Meta object
 func (n *node) Meta() *model.Meta {
-	return n.meta
+	if n.meta != nil {
+		return n.meta
+	}
+	return &model.Meta{}
 }
 
 // RdfType is one defined rdf type, either of CLASS,

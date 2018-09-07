@@ -6,6 +6,7 @@ package graph
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 
 	"github.com/dictyBase/go-obograph/internal"
@@ -46,11 +47,14 @@ func BuildGraph(r io.Reader) (OboGraph, error) {
 
 func buildGraphMeta(jm *schema.JSONMeta) *model.MetaOptions {
 	m := buildBaseMeta(jm)
-	m.Version = jm.Version
+	if len(jm.Version) > 0 {
+		m.Version = jm.Version
+	}
 	return m
 }
 
 func buildTerm(jn *schema.JSONNode) Term {
+	fmt.Println(jn.Lbl)
 	return NewTerm(
 		NodeID(internal.ExtractID(jn.ID)),
 		model.NewMeta(buildTermMeta(jn.Meta)),
@@ -72,8 +76,8 @@ func buildIsaTerm() Term {
 
 func buildTermMeta(jm *schema.JSONMeta) *model.MetaOptions {
 	m := buildBaseMeta(jm)
-	var syn []*model.Synonym
-	if len(jm.Synonyms) > 0 {
+	if jm.Synonyms != nil && len(jm.Synonyms) > 0 {
+		var syn []*model.Synonym
 		for _, js := range jm.Synonyms {
 			if len(js.Xrefs) > 0 {
 				syn = append(syn, model.NewSynonymWithRefs(js.Pred, js.Val, js.Xrefs))
@@ -83,27 +87,31 @@ func buildTermMeta(jm *schema.JSONMeta) *model.MetaOptions {
 		}
 		m.Synonyms = syn
 	}
-	m.Definition = model.NewDefinition(
-		jm.Definition.Val,
-		jm.Definition.Xrefs,
-	)
-	m.Comments = jm.Comments
+	if jm.Definition != nil {
+		m.Definition = model.NewDefinition(
+			jm.Definition.Val,
+			jm.Definition.Xrefs,
+		)
+	}
+	if jm.Comments != nil && len(jm.Comments) > 0 {
+		m.Comments = jm.Comments
+	}
 	return m
 }
 
 func buildBaseMeta(jm *schema.JSONMeta) *model.MetaOptions {
 	m := &model.MetaOptions{}
 	var p []*model.BasicPropertyValue
-	if len(jm.BasicPropertyValues) > 0 {
+	if jm.BasicPropertyValues != nil && len(jm.BasicPropertyValues) > 0 {
 		for _, bp := range jm.BasicPropertyValues {
 			p = append(p, model.NewBasicPropertyValue(bp.Pred, bp.Val))
 		}
+		m.BaseProps = p
 	}
-	m.BaseProps = p
-	if len(jm.Subsets) > 0 {
+	if jm.Subsets != nil && len(jm.Subsets) > 0 {
 		m.Subsets = jm.Subsets
 	}
-	if len(jm.Xrefs) > 0 {
+	if jm.Xrefs != nil && len(jm.Xrefs) > 0 {
 		var xref []*model.Xref
 		for _, x := range jm.Xrefs {
 			xref = append(xref, model.NewXref(x.Val))
