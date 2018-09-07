@@ -6,7 +6,6 @@ package graph
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 
 	"github.com/dictyBase/go-obograph/internal"
@@ -54,10 +53,17 @@ func buildGraphMeta(jm *schema.JSONMeta) *model.MetaOptions {
 }
 
 func buildTerm(jn *schema.JSONNode) Term {
-	fmt.Println(jn.Lbl)
+	if jn.Meta != nil {
+		return NewTermWithMeta(
+			NodeID(internal.ExtractID(jn.ID)),
+			model.NewMeta(buildTermMeta(jn.Meta)),
+			jn.JSONType,
+			jn.Lbl,
+			jn.ID,
+		)
+	}
 	return NewTerm(
 		NodeID(internal.ExtractID(jn.ID)),
-		model.NewMeta(buildTermMeta(jn.Meta)),
 		jn.JSONType,
 		jn.Lbl,
 		jn.ID,
@@ -67,7 +73,6 @@ func buildTerm(jn *schema.JSONNode) Term {
 func buildIsaTerm() Term {
 	return NewTerm(
 		NodeID("is_a"),
-		model.NewMeta(&model.MetaOptions{}),
 		"PROPERTY",
 		"is_a",
 		"http://www.w3.org/2000/01/rdf-schema#rdfs:subClassOf",
