@@ -8,9 +8,9 @@ import (
 	"encoding/json"
 	"io"
 
-	"github.com/dictyBase/obograph/internal"
-	"github.com/dictyBase/obograph/model"
-	"github.com/dictyBase/obograph/schema"
+	"github.com/dictyBase/go-obograph/internal"
+	"github.com/dictyBase/go-obograph/model"
+	"github.com/dictyBase/go-obograph/schema"
 )
 
 // BuildGraph builds an in memory graph from JSON-encoded obograph reader
@@ -94,8 +94,10 @@ func buildTermMeta(jm *schema.JSONMeta) *model.MetaOptions {
 func buildBaseMeta(jm *schema.JSONMeta) *model.MetaOptions {
 	m := &model.MetaOptions{}
 	var p []*model.BasicPropertyValue
-	for _, bp := range jm.BasicPropertyValues {
-		p = append(p, model.NewBasicPropertyValue(bp.Pred, bp.Val))
+	if len(jm.BasicPropertyValues) > 0 {
+		for _, bp := range jm.BasicPropertyValues {
+			p = append(p, model.NewBasicPropertyValue(bp.Pred, bp.Val))
+		}
 	}
 	m.BaseProps = p
 	if len(jm.Subsets) > 0 {
