@@ -23,6 +23,9 @@ type OboGraph interface {
 	ExistsTerm(NodeID) bool
 	// GetTerm fetches an existing term
 	GetTerm(NodeID) Term
+	// GetRelationship fetches relationship(edge) between parent(object) and
+	// children(subject)
+	GetRelationship(NodeID, NodeID) Relationship
 	// Relationships returns all relationships(edges) in the graph
 	Relationships() []Relationship
 	// Terms returns all terms(node/vertex) in the graph
@@ -272,6 +275,17 @@ func (g *graph) ExistsTerm(id NodeID) bool {
 // GetTerm fetches an existing term
 func (g *graph) GetTerm(id NodeID) Term {
 	return g.nodes[id]
+}
+
+// GetRelationship fetches relationship(edge) between parent(object) and
+// children(subject)
+func (g *graph) GetRelationship(obj NodeID, subj NodeID) (rel Relationship) {
+	if v, ok := g.edgesDown[obj]; ok {
+		if r, ok := v[subj]; ok {
+			return r
+		}
+	}
+	return rel
 }
 
 // AddTerm add a new Term to the graph overwriting any existing one
