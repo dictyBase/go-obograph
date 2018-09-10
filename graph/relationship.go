@@ -1,7 +1,7 @@
 package graph
 
 import (
-	"github.com/dictyBase/obograph/model"
+	"github.com/dictyBase/go-obograph/model"
 )
 
 // Relationship is an interface for representing relationship
