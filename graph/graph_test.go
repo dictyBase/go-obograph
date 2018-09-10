@@ -58,8 +58,8 @@ func TestGraphProperties(t *testing.T) {
 		t.Fatalf("expected PROPERTY terms %d does not match %d", 81, len(propt))
 	}
 	rels := g.Relationships()
-	if len(rels) != 813 {
-		t.Fatalf("expected relationships %d does not match %d", 813, len(rels))
+	if len(rels) != 2919 {
+		t.Fatalf("expected relationships %d does not match %d", 2919, len(rels))
 	}
 }
 
@@ -151,4 +151,72 @@ func TestGraphPropertyTerm(t *testing.T) {
 	if dft.Meta().Namespace() != "sequence" {
 		t.Fatalf("expected namespace of sequence does not match %s", dft.Meta().Namespace())
 	}
+}
+
+func TestGraphChildrenTraversal(t *testing.T) {
+	r, err := getReader()
+	if err != nil {
+		t.Fatal(err)
+	}
+	g, err := BuildGraph(r)
+	if err != nil {
+		t.Fatal(err)
+	}
+	term := "SO_0001217"
+	children := g.Children(NodeID(term))
+	if len(children) != 4 {
+		t.Fatalf("expected children %d of term %s does not match %d", 4, term, len(children))
+	}
+	for _, cterm := range []string{"SO_0000548", "SO_0000455", "SO_0000451", "SO_0000693"} {
+		if !includesTerm(children, NodeID(cterm)) {
+			t.Fatalf("expected child term %s does not exist", cterm)
+		}
+	}
+	desc := g.Descendents(NodeID(term))
+	if len(desc) != 9 {
+		t.Fatalf("expected %d descendents does not match %d", 9, len(desc))
+	}
+	for _, dterm := range []string{
+		"SO_0000548",
+		"SO_0000455",
+		"SO_0000451",
+		"SO_0000693",
+		"SO_0000711",
+		"SO_0000712",
+		"SO_0000698",
+		"SO_0000697",
+		"SO_0000710",
+	} {
+		if !includesTerm(desc, NodeID(dterm)) {
+			t.Fatalf("expected child term %s does not exist", dterm)
+		}
+	}
+	descDFS := g.DescendentsDFS(NodeID(term))
+	if len(descDFS) != 9 {
+		t.Fatalf("expected %d descendents does not match %d", 9, len(descDFS))
+	}
+	for _, dterm := range []string{
+		"SO_0000548",
+		"SO_0000455",
+		"SO_0000451",
+		"SO_0000693",
+		"SO_0000711",
+		"SO_0000712",
+		"SO_0000698",
+		"SO_0000697",
+		"SO_0000710",
+	} {
+		if !includesTerm(descDFS, NodeID(dterm)) {
+			t.Fatalf("expected child term %s does not exist", dterm)
+		}
+	}
+}
+
+func includesTerm(t []Term, n NodeID) bool {
+	for _, v := range t {
+		if v.ID() == n {
+			return true
+		}
+	}
+	return false
 }
