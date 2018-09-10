@@ -23,6 +23,34 @@ func getReader() (io.Reader, error) {
 	)
 }
 
+func TestGraph(t *testing.T) {
+	r, err := getReader()
+	if err != nil {
+		t.Fatal(err)
+	}
+	g, err := BuildGraph(r)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if g.ID() != "so.owl" {
+		t.Fatalf("expected Id so.owl does not match %s", g.ID())
+	}
+	if g.IRI() != "http://purl.obolibrary.org/obo/so.owl" {
+		t.Fatalf("expected IRI does not match %s", g.IRI())
+	}
+	m := g.Meta()
+	ver := "http://purl.obolibrary.org/obo/so/so-xp/releases/2015-11-24/so-xp.owl/so.owl"
+	if m.Version() != ver {
+		t.Fatalf("expected version %s does not match %s", ver, m.Version())
+	}
+	if len(m.BasicPropertyValues()) != 5 {
+		t.Fatalf("expected %d basic properties does not match %d", 5, len(m.BasicPropertyValues()))
+	}
+	if m.Namespace() != "sequence" {
+		t.Fatalf("expected namespace sequence does not match %s", m.Namespace())
+	}
+}
+
 func TestGraphClassTerm(t *testing.T) {
 	r, err := getReader()
 	if err != nil {
