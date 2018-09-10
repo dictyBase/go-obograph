@@ -290,8 +290,18 @@ func (g *graph) AddRelationship(obj, subj, pred Term) error {
 		subj.ID(),
 		pred.ID(),
 	)
-	g.edgesDown[obj.ID()] = map[NodeID]Relationship{pred.ID(): rel}
-	g.edgesUp[subj.ID()] = map[NodeID]Relationship{obj.ID(): rel}
+	if v, ok := g.edgesDown[obj.ID()]; ok {
+		v[subj.ID()] = rel
+		g.edgesDown[obj.ID()] = v
+	} else {
+		g.edgesDown[obj.ID()] = map[NodeID]Relationship{subj.ID(): rel}
+	}
+	if v, ok := g.edgesUp[subj.ID()]; ok {
+		v[obj.ID()] = rel
+		g.edgesUp[subj.ID()] = v
+	} else {
+		g.edgesUp[subj.ID()] = map[NodeID]Relationship{obj.ID(): rel}
+	}
 	return nil
 }
 
@@ -311,8 +321,18 @@ func (g *graph) AddRelationshipWithID(obj, subj, pred NodeID) error {
 		subj,
 		pred,
 	)
-	g.edgesDown[obj] = map[NodeID]Relationship{subj: rel}
-	g.edgesUp[subj] = map[NodeID]Relationship{obj: rel}
+	if v, ok := g.edgesDown[obj]; ok {
+		v[subj] = rel
+		g.edgesDown[obj] = v
+	} else {
+		g.edgesDown[obj] = map[NodeID]Relationship{subj: rel}
+	}
+	if v, ok := g.edgesUp[subj]; ok {
+		v[obj] = rel
+		g.edgesUp[subj] = v
+	} else {
+		g.edgesUp[subj] = map[NodeID]Relationship{obj: rel}
+	}
 	return nil
 }
 
