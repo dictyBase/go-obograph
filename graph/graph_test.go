@@ -23,7 +23,7 @@ func getReader() (io.Reader, error) {
 	)
 }
 
-func TestGraph(t *testing.T) {
+func TestGraphProperties(t *testing.T) {
 	r, err := getReader()
 	if err != nil {
 		t.Fatal(err)
@@ -48,6 +48,18 @@ func TestGraph(t *testing.T) {
 	}
 	if m.Namespace() != "sequence" {
 		t.Fatalf("expected namespace sequence does not match %s", m.Namespace())
+	}
+	clst := g.TermsByType("CLASS")
+	if len(clst) != 2432 {
+		t.Fatalf("expected CLASS terms %d does not match %d", 2432, len(clst))
+	}
+	propt := g.TermsByType("PROPERTY")
+	if len(propt) != 81 {
+		t.Fatalf("expected PROPERTY terms %d does not match %d", 81, len(propt))
+	}
+	rels := g.Relationships()
+	if len(rels) != 813 {
+		t.Fatalf("expected relationships %d does not match %d", 813, len(rels))
 	}
 }
 
