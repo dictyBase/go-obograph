@@ -171,14 +171,14 @@ func (g *graph) DescendentsDFS(id NodeID) []Term {
 		}
 		// mark them if not visited
 		if _, ok := visited[nid]; !ok {
-			visited[id] = true
+			visited[nid] = true
 		}
 		// get children of this term
 		for _, child := range g.Children(nid) {
-			// mark them if not visited
+			// if not visited push them in the stack
 			if _, ok := visited[child.ID()]; !ok {
-				visited[child.ID()] = true
 				d = append(d, child)
+				st = append(st, child.ID())
 			}
 		}
 	}
