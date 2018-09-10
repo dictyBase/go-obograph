@@ -153,6 +153,36 @@ func TestGraphPropertyTerm(t *testing.T) {
 	}
 }
 
+func TestGraphParentTraversal(t *testing.T) {
+	r, err := getReader()
+	if err != nil {
+		t.Fatal(err)
+	}
+	g, err := BuildGraph(r)
+	if err != nil {
+		t.Fatal(err)
+	}
+	term := "SO_0000336"
+	parents := g.Parents(NodeID(term))
+	if len(parents) != 2 {
+		t.Fatalf("expected %d parents does not match %d", 2, len(parents))
+	}
+	for _, pterm := range []string{"SO_0000704", "SO_0001411"} {
+		if !includesTerm(parents, NodeID(pterm)) {
+			t.Fatalf("expected parent term %s does not exist", pterm)
+		}
+	}
+	ancestors := g.Ancestors(NodeID(term))
+	if len(ancestors) != 5 {
+		t.Fatalf("expected %d ancestors does not match %d", 5, len(ancestors))
+	}
+	for _, aterm := range []string{"SO_0000704", "SO_0001411", "SO_0005855", "SO_0000001", "SO_0000110"} {
+		if !includesTerm(ancestors, NodeID(aterm)) {
+			t.Fatalf("expected ancestor term %s does not exist", aterm)
+		}
+	}
+}
+
 func TestGraphChildrenTraversal(t *testing.T) {
 	r, err := getReader()
 	if err != nil {
