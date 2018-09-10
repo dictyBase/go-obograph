@@ -3,7 +3,7 @@ package graph
 import (
 	"fmt"
 
-	"github.com/dictyBase/obograph/model"
+	"github.com/dictyBase/go-obograph/model"
 )
 
 // NodeID is a custom type for holding a node id
@@ -290,29 +290,29 @@ func (g *graph) AddRelationship(obj, subj, pred Term) error {
 		subj.ID(),
 		pred.ID(),
 	)
-	g.edgesDown[obj.ID()][pred.ID()] = rel
-	g.edgesUp[subj.ID()][obj.ID()] = rel
+	g.edgesDown[obj.ID()] = map[NodeID]Relationship{pred.ID(): rel}
+	g.edgesUp[subj.ID()] = map[NodeID]Relationship{obj.ID(): rel}
 	return nil
 }
 
 // AddRelationshipWithID creates relationship between existing terms
 func (g *graph) AddRelationshipWithID(obj, subj, pred NodeID) error {
 	if _, ok := g.nodes[obj]; !ok {
-		return fmt.Errorf("node id %s does not exist", obj)
+		return fmt.Errorf("object node id %s does not exist", obj)
 	}
 	if _, ok := g.nodes[subj]; !ok {
-		return fmt.Errorf("node id %s does not exist", subj)
+		return fmt.Errorf("subject node id %s does not exist", subj)
 	}
 	if _, ok := g.nodes[pred]; !ok {
-		return fmt.Errorf("node id %s does not exist", pred)
+		return fmt.Errorf("predicate node id %s does not exist", pred)
 	}
 	rel := NewRelationship(
 		obj,
 		subj,
 		pred,
 	)
-	g.edgesDown[obj][subj] = rel
-	g.edgesUp[subj][obj] = rel
+	g.edgesDown[obj] = map[NodeID]Relationship{subj: rel}
+	g.edgesUp[subj] = map[NodeID]Relationship{obj: rel}
 	return nil
 }
 
