@@ -242,6 +242,25 @@ func TestGraphChildrenTraversal(t *testing.T) {
 	}
 }
 
+func TestGraphRelationship(t *testing.T) {
+	r, err := getReader()
+	if err != nil {
+		t.Fatal(err)
+	}
+	g, err := BuildGraph(r)
+	if err != nil {
+		t.Fatal(err)
+	}
+	rel := g.GetRelationship(NodeID("SO_0000704"), NodeID("SO_0001217"))
+	if rel.Predicate() != NodeID("is_a") {
+		t.Fatalf("expected relationship %s does not match %s", "is_a", rel.Predicate())
+	}
+	rel2 := g.GetRelationship(NodeID("SO_0000010"), NodeID("SO_0001217"))
+	if rel2.Predicate() != NodeID("has_quality") {
+		t.Fatalf("expected relationship %s does not match %s", "has_quality", rel2.Predicate())
+	}
+}
+
 func includesTerm(t []Term, n NodeID) bool {
 	for _, v := range t {
 		if v.ID() == n {
