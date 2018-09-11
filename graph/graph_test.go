@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"testing"
+	"time"
 )
 
 func getReader() (io.Reader, error) {
@@ -60,6 +61,14 @@ func TestGraphProperties(t *testing.T) {
 	rels := g.Relationships()
 	if len(rels) != 2919 {
 		t.Fatalf("expected relationships %d does not match %d", 2919, len(rels))
+	}
+	layout := "02:01:2006 15:04"
+	tm, err := time.Parse(layout, "21:06:2018 13:11")
+	if err != nil {
+		t.Fatalf("error in parsing time %s", err)
+	}
+	if !tm.Equal(g.Timestamp()) {
+		t.Fatalf("expected timestamp %s does not match %s", tm.String(), g.Timestamp().String())
 	}
 }
 
