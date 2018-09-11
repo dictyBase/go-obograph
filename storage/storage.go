@@ -23,6 +23,6 @@ type DataSource interface {
 	SaveOrUpdateTerms([]graph.Term) (int, error)
 	// SaveRelationships persist slice of relationships in the storage
 	SaveRelationships([]graph.Relationship) (int, error)
-	// SaveOnlyRelationships skips the existing one and saves only the new relationships
-	SaveOnlyRelationships([]graph.Relationship) (int, error)
+	// SaveNewRelationships skips the existing one and saves only the new relationships
+	SaveNewRelationships([]graph.Relationship) (int, error)
 }
