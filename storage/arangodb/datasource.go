@@ -121,12 +121,29 @@ func (a *arangoSource) SaveOboGraphInfo(g graph.OboGraph) error {
 			properties: dp,
 		},
 	}
-	_, err := a.graphc.CreateDocument(context.Background(), dg)
+	ctx := driver.WithSilent(context.Background())
+	_, err := a.graphc.CreateDocument(ctx, dg)
 	return err
 }
 
 func (a *arangoSource) ExistsOboGraph(g graph.OboGraph) bool {
-	panic("not implemented")
+	ctx := driver.WithQueryCount(context.Background())
+	query := `FOR d in @@collection
+				FILTER d.id == @identifier
+				RETURN d`
+	bindVars := map[string]interface{}{
+		"@collection": a.graphc.Name(),
+		"identifier":  g.ID(),
+	}
+	cursor, err := a.database.Query(ctx, query, bindVars)
+	if err != nil {
+		return false
+	}
+	defer cursor.Close()
+	if cursor.Count() > 0 {
+		return true
+	}
+	return false
 }
 
 func (a *arangoSource) IsUpdatedOboGraph(g graph.OboGraph) bool {
