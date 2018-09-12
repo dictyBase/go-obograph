@@ -1,6 +1,7 @@
 package arangodb
 
 import (
+	"context"
 	"crypto/tls"
 	"fmt"
 
@@ -8,15 +9,9 @@ import (
 
 	driver "github.com/arangodb/go-driver"
 	"github.com/arangodb/go-driver/http"
+	"github.com/dictyBase/go-obograph/graph"
 	"github.com/dictyBase/go-obograph/storage"
 )
-
-type arangoSource struct {
-	database driver.Database
-	termc    driver.Collection
-	relc     driver.Collection
-	graphc   driver.Collection
-}
 
 // ConnectParams are the parameters required for connecting to arangodb
 type ConnectParams struct {
@@ -96,4 +91,64 @@ func NewDataSource(connP *ConnectParams, collP *CollectionParams) (storage.DataS
 		relc:     relc,
 		graphc:   graphc,
 	}, nil
+}
+
+type arangoSource struct {
+	database driver.Database
+	termc    driver.Collection
+	relc     driver.Collection
+	graphc   driver.Collection
+}
+
+func (a *arangoSource) SaveOboGraphInfo(g graph.OboGraph) error {
+	var dp []*dbGraphProps
+	for _, p := range g.Meta().BasicPropertyValues() {
+		dp = append(dp, &dbGraphProps{
+			pred:  p.Pred(),
+			value: p.Value(),
+			curie: curieMap[p.Pred()],
+		})
+	}
+	dg := &dbGraphInfo{
+		id:        g.ID(),
+		iri:       g.IRI(),
+		label:     g.Label(),
+		createdAt: g.Timestamp(),
+		UpdatedAt: g.Timestamp(),
+		metadata: &dbGraphMeta{
+			namespace:  g.Meta().Namespace(),
+			version:    g.Meta().Version(),
+			properties: dp,
+		},
+	}
+	_, err := a.graphc.CreateDocument(context.Background(), dg)
+	return err
+}
+
+func (a *arangoSource) ExistsOboGraph(g graph.OboGraph) bool {
+	panic("not implemented")
+}
+
+func (a *arangoSource) IsUpdatedOboGraph(g graph.OboGraph) bool {
+	panic("not implemented")
+}
+
+func (a *arangoSource) SaveTerms(ts []graph.Term) (int, error) {
+	panic("not implemented")
+}
+
+func (a *arangoSource) UpdateTerms(ts []graph.Term) (int, error) {
+	panic("not implemented")
+}
+
+func (a *arangoSource) SaveOrUpdateTerms(ts []graph.Term) (int, error) {
+	panic("not implemented")
+}
+
+func (a *arangoSource) SaveRelationships(rs []graph.Relationship) (int, error) {
+	panic("not implemented")
+}
+
+func (a *arangoSource) SaveNewRelationships(rs []graph.Relationship) (int, error) {
+	panic("not implemented")
 }
