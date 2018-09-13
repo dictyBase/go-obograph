@@ -171,7 +171,15 @@ func (a *arangoSource) IsUpdatedOboGraph(g graph.OboGraph) bool {
 }
 
 func (a *arangoSource) SaveTerms(ts []graph.Term) (int, error) {
-	panic("not implemented")
+	stat, err := a.termc.ImportDocuments(
+		context.Background(),
+		todbTerm(ts),
+		&driver.ImportDocumentOptions{Complete: true},
+	)
+	if err != nil {
+		return 0, err
+	}
+	return int(stat.Created), nil
 }
 
 func (a *arangoSource) UpdateTerms(ts []graph.Term) (int, error) {
