@@ -160,9 +160,10 @@ func (a *arangoSource) IsUpdatedOboGraph(g graph.OboGraph) bool {
 		"@collection": a.graphc.Name(),
 		"identifier":  g.ID(),
 	}
-	cursor, err := a.database.Query(context.Background(), query, bindVars)
+	ctx := driver.WithQueryCache(context.Background(), true)
+	cursor, err := a.database.Query(ctx, query, bindVars)
 	defer cursor.Close()
-	_, err := cursor.ReadDocument(context.Background(), ts)
+	_, err := cursor.ReadDocument(ctx, ts)
 	if err != nil {
 		return err
 	}
