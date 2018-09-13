@@ -22,8 +22,8 @@ type dbGraphInfo struct {
 }
 
 type dbGraphMeta struct {
-	namespace  `json:"namespace"`
-	version    `json:"version"`
+	namespace  string          `json:"namespace"`
+	version    string          `json:"version"`
 	properties []*dbGraphProps `json:"properties"`
 }
 
@@ -31,4 +31,39 @@ type dbGraphProps struct {
 	pred  string `json:"pred"`
 	value string `json:"value"`
 	curie string `json:"curie"`
+}
+
+type dbTerm struct {
+	id       string      `json:"id"`
+	iri      string      `json:"iri"`
+	label    string      `json:"label"`
+	rdfType  string      `json:"rdftype"`
+	metadata *dbTermMeta `json:"metadata"`
+}
+
+type dbTermMeta struct {
+	namespace  string            `json:"namespace"`
+	comments   []string          `json:"comments"`
+	subsets    []string          `json:"subsets"`
+	definition *dbMetaDefinition `json:"definition"`
+	synonyms   []*dbMetaSynonym  `json:"synonyms"`
+	xrefs      []*dbMetaXref     `json:"xrefs"`
+	properties []*dbGraphProps   `json:"properties"`
+}
+
+type dbMetaDefinition struct {
+	value string   `json:"value"`
+	xrefs []string `json:"xrefs"`
+}
+
+type dbMetaSynonym struct {
+	value   string   `json:"value"`
+	pred    string   `json:"pred"`
+	scope   string   `json:"scope"`
+	isExact bool     `json:"is_exact"`
+	xrefs   []string `json:"xrefs"`
+}
+
+type dbMetaXref struct {
+	value string `json:"value"`
 }
