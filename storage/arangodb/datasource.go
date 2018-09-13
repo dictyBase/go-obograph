@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	"time"
 
 	"gopkg.in/go-playground/validator.v9"
 
@@ -114,7 +115,7 @@ func (a *arangoSource) SaveOboGraphInfo(g graph.OboGraph) error {
 		iri:       g.IRI(),
 		label:     g.Label(),
 		createdAt: g.Timestamp(),
-		UpdatedAt: g.Timestamp(),
+		updatedAt: g.Timestamp(),
 		metadata: &dbGraphMeta{
 			namespace:  g.Meta().Namespace(),
 			version:    g.Meta().Version(),
@@ -147,7 +148,25 @@ func (a *arangoSource) ExistsOboGraph(g graph.OboGraph) bool {
 }
 
 func (a *arangoSource) IsUpdatedOboGraph(g graph.OboGraph) bool {
-	panic("not implemented")
+	if !a.ExistsOboGraph(g) {
+		return true
+	}
+	var ts time.Time
+	query := `FOR d in @@collection
+				FILTER d.identifier == @identifier
+				LIMIT 1
+				RETURN d.updated_at `
+	bindVars := map[string]interface{}{
+		"@collection": a.graphc.Name(),
+		"identifier":  g.ID(),
+	}
+	cursor, err := a.database.Query(context.Background(), query, bindVars)
+	defer cursor.Close()
+	_, err := cursor.ReadDocument(context.Background(), ts)
+	if err != nil {
+		return err
+	}
+	return g.Timestamp().After(ts)
 }
 
 func (a *arangoSource) SaveTerms(ts []graph.Term) (int, error) {
