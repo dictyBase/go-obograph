@@ -6,10 +6,16 @@ import (
 
 var curieMap = map[string]string{
 	"http://www.geneontology.org/formats/oboInOwl#date":                "date",
-	"http://www.geneontology.org/formats/oboInOwl#saved-by":            "savedBy",
-	"http://www.geneontology.org/formats/oboInOwl#auto-generated-by":   "generatedBy",
+	"http://www.geneontology.org/formats/oboInOwl#saved-by":            "saved_by",
+	"http://www.geneontology.org/formats/oboInOwl#auto-generated-by":   "generated_by",
 	"http://www.geneontology.org/formats/oboInOwl#default-namespace":   "namespace",
 	"http://www.geneontology.org/formats/oboInOwl#hasOBOFormatVersion": "oboFormat",
+	"http://www.geneontology.org/formats/oboInOwl#hasOBONamespace":     "namespace",
+	"http://www.geneontology.org/formats/oboInOwl#creation_date":       "date",
+	"http://www.w3.org/2000/01/rdf-schema#comment":                     "comment",
+	"http://www.geneontology.org/formats/oboInOwl#created_by":          "created_by",
+	"http://www.w3.org/2002/07/owl#deprecated":                         "deprecated",
+	"http://purl.obolibrary.org/obo/IAO_0100001":                       "replaced_by",
 }
 
 type dbGraphInfo struct {
