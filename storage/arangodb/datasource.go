@@ -112,20 +112,15 @@ func (a *arangoSource) SaveOboGraphInfo(g graph.OboGraph) error {
 }
 
 func (a *arangoSource) ExistsOboGraph(g graph.OboGraph) bool {
-	ctx := driver.WithQueryCount(context.Background())
-	query := `FOR d in @@collection
-				FILTER d.id == @identifier
-				RETURN d`
-	bindVars := map[string]interface{}{
-		"@collection": a.graphc.Name(),
-		"identifier":  g.ID(),
-	}
-	cursor, err := a.database.Query(ctx, query, bindVars)
+	query := manager.NewAqlStruct().
+		For("d", a.graphc.Name()).
+		Filter("d", Fil("id", "eq", g.ID())).
+		Return("d")
+	count, err := a.database.Count(query.Generate())
 	if err != nil {
 		return false
 	}
-	defer cursor.Close()
-	if cursor.Count() > 0 {
+	if count > 0 {
 		return true
 	}
 	return false
@@ -135,26 +130,24 @@ func (a *arangoSource) IsUpdatedOboGraph(g graph.OboGraph) bool {
 	if !a.ExistsOboGraph(g) {
 		return true
 	}
-	var ts time.Time
-	query := `FOR d in @@collection
-				FILTER d.identifier == @identifier
-				LIMIT 1
-				RETURN d.updated_at `
-	bindVars := map[string]interface{}{
-		"@collection": a.graphc.Name(),
-		"identifier":  g.ID(),
+	query := manager.NewAqlStruct().
+		For("d", a.graphc.Name()).
+		Filter("d", Fil("id", "eq", g.ID())).
+		Limit(1).
+		Return("d.updated_at")
+	res, err := a.database.Get(query.Generate())
+	var s string
+	if err := res.Read(&s); err != nil {
+		return false
 	}
-	ctx := driver.WithQueryCache(context.Background(), true)
-	cursor, err := a.database.Query(ctx, query, bindVars)
-	defer cursor.Close()
-	_, err := cursor.ReadDocument(ctx, ts)
+	ts, err := time.Parse("02:01:2006 15:04", s)
 	if err != nil {
-		return err
+		return false
 	}
 	return g.Timestamp().After(ts)
 }
 
-func (a *arangoSource) SaveTerms(ts []graph.Term) (int, error) {
+func (a *arangoSource) SaveTerms(terms []graph.Term) (int, error) {
 	stat, err := a.termc.ImportDocuments(
 		context.Background(),
 		todbTerm(ts),
