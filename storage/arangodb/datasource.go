@@ -2,16 +2,14 @@ package arangodb
 
 import (
 	"context"
-	"crypto/tls"
-	"fmt"
 	"time"
 
 	"gopkg.in/go-playground/validator.v9"
 
 	driver "github.com/arangodb/go-driver"
-	"github.com/arangodb/go-driver/http"
 	"github.com/dictyBase/go-obograph/graph"
 	"github.com/dictyBase/go-obograph/storage"
+	"github.com/dictyBase/go-obograph/storage/arangodb/manager"
 )
 
 // ConnectParams are the parameters required for connecting to arangodb
@@ -20,7 +18,7 @@ type ConnectParams struct {
 	Pass     string `validate:"required"`
 	Database string `validate:"required"`
 	Host     string `validate:"required"`
-	Port     string `validate:"required"`
+	Port     int    `validate:"required"`
 	Istls    bool
 }
 
@@ -44,49 +42,34 @@ func NewDataSource(connP *ConnectParams, collP *CollectionParams) (storage.DataS
 	if err := validate.Struct(collP); err != nil {
 		return ds, err
 	}
-	connConf := http.ConnectionConfig{
-		Endpoints: []string{
-			fmt.Sprintf("http://%s:%s", connP.Host, connP.Port),
-		},
-	}
-	if connP.Istls {
-		connConf.Endpoints = []string{
-			fmt.Sprintf("https://%s:%s", connP.Host, connP.Port),
-		}
-		connConf.TLSConfig = &tls.Config{InsecureSkipVerify: true}
-	}
-	conn, err := http.NewConnection(connConf)
-	if err != nil {
-		return ds, fmt.Errorf("could not connect %s", err)
-	}
-	client, err := driver.NewClient(
-		driver.ClientConfig{
-			Connection: conn,
-			Authentication: driver.BasicAuthentication(
-				connP.User,
-				connP.Pass,
-			),
-		})
-	if err != nil {
-		return ds, fmt.Errorf("could not get a client instance %s", err)
-	}
-	db, err := getDatabase(connP.Database, client)
+	sess, err := manager.Connect(
+		connP.Host,
+		connP.User,
+		connP.Pass,
+		connP.Port,
+		connP.Istls,
+	)
 	if err != nil {
 		return ds, err
 	}
-	termc, err := getCollection(db, collP.Term)
+	db, err := sess.DB(connP.Database)
 	if err != nil {
 		return ds, err
 	}
-	relc, err := getCollection(db, coll.Relationship)
+	termc, err := db.Collection(collP.Term)
 	if err != nil {
 		return ds, err
 	}
-	graphc, err := getCollection(db, coll.GraphInfo)
+	relc, err := db.Collection(coll.Relationship)
+	if err != nil {
+		return ds, err
+	}
+	graphc, err := db.Collection(coll.GraphInfo)
 	if err != nil {
 		return ds, err
 	}
 	return &arangoSource{
+		sess:     sess,
 		database: db,
 		termc:    termc,
 		relc:     relc,
@@ -95,7 +78,8 @@ func NewDataSource(connP *ConnectParams, collP *CollectionParams) (storage.DataS
 }
 
 type arangoSource struct {
-	database driver.Database
+	sess     *manager.Session
+	database *manager.Database
 	termc    driver.Collection
 	relc     driver.Collection
 	graphc   driver.Collection
