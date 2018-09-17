@@ -2,11 +2,12 @@ package arangodb
 
 import (
 	"github.com/dictyBase/go-obograph/graph"
+	"github.com/dictyBase/go-obograph/storage/arangodb/manager"
 )
 
-var sMap map[string]string = make(map[string]string)
-var pMap map[string]string = make(map[string]string)
-var oMap map[string]string = make(map[string]string)
+var sMap map[graph.NodeID]string = make(map[graph.NodeID]string)
+var pMap map[graph.NodeID]string = make(map[graph.NodeID]string)
+var oMap map[graph.NodeID]string = make(map[graph.NodeID]string)
 
 func todbTerm(t graph.Term) *dbTerm {
 	var dbm *dbTermMeta
@@ -62,4 +63,8 @@ func todbTerm(t graph.Term) *dbTerm {
 		rdfType:  t.RdfType(),
 		metadata: dbm,
 	}
+}
+
+func todbRelationhip(db *manager.Database, r graph.Relationship) (*db.Relationship, error) {
+	dbr := &dbRelationship{}
 }
