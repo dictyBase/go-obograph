@@ -34,6 +34,9 @@ func (r *Resultset) Read(i interface{}) error {
 	if err != nil {
 		return fmt.Errorf("error in reading document %s", err)
 	}
+	if !structs.IsStruct(i) {
+		return nil
+	}
 	s := structs.New(i)
 	if f, ok := s.FieldOk("DocumentMeta"); ok {
 		if f.IsEmbedded() {
