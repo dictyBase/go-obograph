@@ -148,9 +148,13 @@ func (a *arangoSource) IsUpdatedOboGraph(g graph.OboGraph) bool {
 }
 
 func (a *arangoSource) SaveTerms(terms []graph.Term) (int, error) {
+	var dbterms []*dbTerm
+	for _, t := range terms {
+		dbterms = append(dbterms, todbTerm(t))
+	}
 	stat, err := a.termc.ImportDocuments(
 		context.Background(),
-		todbTerm(ts),
+		dbterms,
 		&driver.ImportDocumentOptions{Complete: true},
 	)
 	if err != nil {
