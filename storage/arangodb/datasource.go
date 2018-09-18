@@ -2,6 +2,7 @@ package arangodb
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"gopkg.in/go-playground/validator.v9"
@@ -11,6 +12,10 @@ import (
 	"github.com/dictyBase/go-obograph/storage"
 	"github.com/dictyBase/go-obograph/storage/arangodb/manager"
 )
+
+var sMap map[graph.NodeID]string = make(map[graph.NodeID]string)
+var pMap map[graph.NodeID]string = make(map[graph.NodeID]string)
+var oMap map[graph.NodeID]string = make(map[graph.NodeID]string)
 
 // ConnectParams are the parameters required for connecting to arangodb
 type ConnectParams struct {
@@ -163,18 +168,126 @@ func (a *arangoSource) SaveTerms(terms []graph.Term) (int, error) {
 	return int(stat.Created), nil
 }
 
-func (a *arangoSource) UpdateTerms(ts []graph.Term) (int, error) {
+func (a *arangoSource) UpdateTerms(terms []graph.Term) (int, error) {
 	panic("not implemented")
 }
 
-func (a *arangoSource) SaveOrUpdateTerms(ts []graph.Term) (int, error) {
+func (a *arangoSource) SaveOrUpdateTerms(terms []graph.Term) (int, error) {
 	panic("not implemented")
 }
 
-func (a *arangoSource) SaveRelationships(rs []graph.Relationship) (int, error) {
+func (a *arangoSource) SaveRelationships(rels []graph.Relationship) (int, error) {
 	panic("not implemented")
 }
 
-func (a *arangoSource) SaveNewRelationships(rs []graph.Relationship) (int, error) {
+func (a *arangoSource) SaveNewRelationships(rels []graph.Relationship) (int, error) {
 	panic("not implemented")
+}
+
+func (a *arangoSource) todbTerm(t graph.Term) *dbTerm {
+	var dbm *dbTermMeta
+	var dps []*dbGraphProps
+	for _, p := range t.Meta().BasicPropertyValues() {
+		dps = append(dps, &dbGraphProps{
+			pred:  p.Pred(),
+			value: p.Value(),
+			curie: curieMap[p.Pred()],
+		})
+	}
+	dbm.properties = dps
+
+	if len(t.Meta().Xrefs()) > 0 {
+		var dbx []*dbMetaXref
+		for _, r := range t.Meta().Xrefs() {
+			dbx = append(dbx, &dbMetaXref{value: r.Value()})
+		}
+		dbm.xrefs = dbx
+	}
+
+	if len(t.Meta().Synonyms()) > 0 {
+		var dbs []*dbMetaSynonym
+		for _, s := range t.Meta().Synonyms() {
+			dbs = append(dbs, &dbMetaSynonym{
+				value:   s.Value(),
+				pred:    s.Pred(),
+				scope:   s.Scope(),
+				isExact: s.IsExact(),
+				xrefs:   s.Xrefs(),
+			})
+		}
+	}
+	dbm.synonyms = dbs
+
+	if len(t.Meta().Comments()) > 1 {
+		dbm.comments = t.Meta().Comments()
+	}
+	if len(t.Meta().Subsets()) > 1 {
+		dbm.subsets = t.Meta().Subsets()
+	}
+	if t.Meta().Definition() != nil {
+		dbm.definition = &dbMetaDefinition{
+			value: t.Meta().Definition().Value(),
+			xrefs: t.Meta().Definition().Xrefs(),
+		}
+	}
+	dbm.namespace = t.Meta().Namespace()
+	return &dbTerm{
+		id:       t.ID(),
+		iri:      t.IRI(),
+		label:    t.Label(),
+		rdfType:  t.RdfType(),
+		metadata: dbm,
+	}
+}
+
+func (a *arangoSource) todbRelationhip(r graph.Relationship) (*db.Relationship, error) {
+	dbr := &dbRelationship{}
+	if v, ok := oMap[r.Object()]; ok {
+		dbr.from = v
+	} else {
+		id, err := a.getDocId(r.Object())
+		if err != nil {
+			return dbr, err
+		}
+		oMap[r.Object()] = id
+		dbr.from = id
+	}
+	if v, ok := oMap[r.Subject()]; ok {
+		dbr.to = v
+	} else {
+		id, err := a.getDocId(r.Subject())
+		if err != nil {
+			return dbr, err
+		}
+		oMap[r.Subject()] = id
+		dbr.from = id
+	}
+	if v, ok := oMap[r.Predicate()]; ok {
+		dbr.predicate = v
+	} else {
+		id, err := a.getDocId(r.Predicate())
+		if err != nil {
+			return dbr, err
+		}
+		oMap[r.Predicate()] = id
+		dbr.predicate = id
+	}
+	return dbr, nil
+}
+
+func (a *arangoSource) getDocId(nid graph.NodeID) (string, error) {
+	var id string
+	query := manager.NewAqlStruct().
+		For("d", a.termc.Name()).
+		Filter("d", Fil("id", "eq", string(nid))).
+		Return("d._id")
+	res, err := a.database.Get(query.Generate())
+	if err != nil {
+		return id, err
+	}
+	if res.IsEmpty() {
+		return id, fmt.Errorf("object %s is absent in database", nid)
+	}
+	err := res.Read(&id)
+	return id, err
 }
