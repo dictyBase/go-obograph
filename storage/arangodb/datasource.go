@@ -155,11 +155,31 @@ func (a *arangoSource) IsUpdatedOboGraph(g graph.OboGraph) bool {
 func (a *arangoSource) SaveTerms(terms []graph.Term) (int, error) {
 	var dbterms []*dbTerm
 	for _, t := range terms {
-		dbterms = append(dbterms, todbTerm(t))
+		dbterms = append(dbterms, a.todbTerm(t))
 	}
 	stat, err := a.termc.ImportDocuments(
 		context.Background(),
 		dbterms,
+		&driver.ImportDocumentOptions{Complete: true},
+	)
+	if err != nil {
+		return 0, err
+	}
+	return int(stat.Created), nil
+}
+
+func (a *arangoSource) SaveRelationships(rels []graph.Relationship) (int, error) {
+	var dbrs []*db.Relationship
+	for _, r := range rels {
+		dbrel, err := a.todbRelationhip(r)
+		if err != nil {
+			return 0, err
+		}
+		dbrs = append(dbrs, dbrel)
+	}
+	stat, err := a.relc.ImportDocuments(
+		context.Background(),
+		dbrs,
 		&driver.ImportDocumentOptions{Complete: true},
 	)
 	if err != nil {
@@ -173,10 +193,6 @@ func (a *arangoSource) UpdateTerms(terms []graph.Term) (int, error) {
 }
 
 func (a *arangoSource) SaveOrUpdateTerms(terms []graph.Term) (int, error) {
-	panic("not implemented")
-}
-
-func (a *arangoSource) SaveRelationships(rels []graph.Relationship) (int, error) {
 	panic("not implemented")
 }
 
