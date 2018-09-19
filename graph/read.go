@@ -30,6 +30,7 @@ func BuildGraph(r io.Reader) (OboGraph, error) {
 	g.AddTerm(buildIsaTerm())
 	g.AddTerm(buildsubPropertyTerm())
 	g.AddTerm(buildinverseOfTerm())
+	g.AddTerm(buildTypeTerm())
 	for _, jn := range og.Nodes {
 		g.AddTerm(buildTerm(jn))
 	}
@@ -69,6 +70,15 @@ func buildTerm(jn *schema.JSONNode) Term {
 		jn.JSONType,
 		jn.Lbl,
 		jn.ID,
+	)
+}
+
+func buildTypeTerm() Term {
+	return NewTerm(
+		NodeID("type"),
+		"PROPERTY",
+		"type",
+		"https://www.w3.org/1999/02/22-rdf-syntax-ns#type",
 	)
 }
 
