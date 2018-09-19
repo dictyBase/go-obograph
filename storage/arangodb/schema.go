@@ -73,3 +73,9 @@ type dbMetaSynonym struct {
 type dbMetaXref struct {
 	value string `json:"value"`
 }
+
+type dbRelationship struct {
+	from      string `json:"_from"`
+	to        string `json:"_to"`
+	predicate string `json:"predicate"`
+}
