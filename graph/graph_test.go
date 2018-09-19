@@ -55,8 +55,8 @@ func TestGraphProperties(t *testing.T) {
 		t.Fatalf("expected CLASS terms %d does not match %d", 2432, len(clst))
 	}
 	propt := g.TermsByType("PROPERTY")
-	if len(propt) != 81 {
-		t.Fatalf("expected PROPERTY terms %d does not match %d", 81, len(propt))
+	if len(propt) != 82 {
+		t.Fatalf("expected PROPERTY terms %d does not match %d", 82, len(propt))
 	}
 	rels := g.Relationships()
 	if len(rels) != 2919 {
