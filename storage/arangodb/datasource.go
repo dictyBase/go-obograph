@@ -65,11 +65,11 @@ func NewDataSource(connP *ConnectParams, collP *CollectionParams) (storage.DataS
 	if err != nil {
 		return ds, err
 	}
-	relc, err := db.Collection(coll.Relationship)
+	relc, err := db.Collection(collP.Relationship)
 	if err != nil {
 		return ds, err
 	}
-	graphc, err := db.Collection(coll.GraphInfo)
+	graphc, err := db.Collection(collP.GraphInfo)
 	if err != nil {
 		return ds, err
 	}
@@ -119,7 +119,7 @@ func (a *arangoSource) SaveOboGraphInfo(g graph.OboGraph) error {
 func (a *arangoSource) ExistsOboGraph(g graph.OboGraph) bool {
 	query := manager.NewAqlStruct().
 		For("d", a.graphc.Name()).
-		Filter("d", Fil("id", "eq", g.ID())).
+		Filter("d", manager.Fil("id", "eq", g.ID())).
 		Return("d")
 	count, err := a.database.Count(query.Generate())
 	if err != nil {
@@ -137,7 +137,7 @@ func (a *arangoSource) IsUpdatedOboGraph(g graph.OboGraph) bool {
 	}
 	query := manager.NewAqlStruct().
 		For("d", a.graphc.Name()).
-		Filter("d", Fil("id", "eq", g.ID())).
+		Filter("d", manager.Fil("id", "eq", g.ID())).
 		Limit(1).
 		Return("d.updated_at")
 	res, err := a.database.Get(query.Generate())
@@ -169,7 +169,7 @@ func (a *arangoSource) SaveTerms(terms []graph.Term) (int, error) {
 }
 
 func (a *arangoSource) SaveRelationships(rels []graph.Relationship) (int, error) {
-	var dbrs []*db.Relationship
+	var dbrs []*dbRelationship
 	for _, r := range rels {
 		dbrel, err := a.todbRelationhip(r)
 		if err != nil {
@@ -189,15 +189,15 @@ func (a *arangoSource) SaveRelationships(rels []graph.Relationship) (int, error)
 }
 
 func (a *arangoSource) UpdateTerms(terms []graph.Term) (int, error) {
-	panic("not implemented")
+	return 0, nil
 }
 
 func (a *arangoSource) SaveOrUpdateTerms(terms []graph.Term) (int, error) {
-	panic("not implemented")
+	return 0, nil
 }
 
 func (a *arangoSource) SaveNewRelationships(rels []graph.Relationship) (int, error) {
-	panic("not implemented")
+	return 0, nil
 }
 
 func (a *arangoSource) todbTerm(t graph.Term) *dbTerm {
@@ -231,8 +231,8 @@ func (a *arangoSource) todbTerm(t graph.Term) *dbTerm {
 				xrefs:   s.Xrefs(),
 			})
 		}
+		dbm.synonyms = dbs
 	}
-	dbm.synonyms = dbs
 
 	if len(t.Meta().Comments()) > 1 {
 		dbm.comments = t.Meta().Comments()
@@ -248,7 +248,7 @@ func (a *arangoSource) todbTerm(t graph.Term) *dbTerm {
 	}
 	dbm.namespace = t.Meta().Namespace()
 	return &dbTerm{
-		id:       t.ID(),
+		id:       string(t.ID()),
 		iri:      t.IRI(),
 		label:    t.Label(),
 		rdfType:  t.RdfType(),
@@ -256,7 +256,7 @@ func (a *arangoSource) todbTerm(t graph.Term) *dbTerm {
 	}
 }
 
-func (a *arangoSource) todbRelationhip(r graph.Relationship) (*db.Relationship, error) {
+func (a *arangoSource) todbRelationhip(r graph.Relationship) (*dbRelationship, error) {
 	dbr := &dbRelationship{}
 	if v, ok := oMap[r.Object()]; ok {
 		dbr.from = v
@@ -295,7 +295,7 @@ func (a *arangoSource) getDocId(nid graph.NodeID) (string, error) {
 	var id string
 	query := manager.NewAqlStruct().
 		For("d", a.termc.Name()).
-		Filter("d", Fil("id", "eq", string(nid))).
+		Filter("d", manager.Fil("id", "eq", string(nid))).
 		Return("d._id")
 	res, err := a.database.Get(query.Generate())
 	if err != nil {
@@ -304,6 +304,6 @@ func (a *arangoSource) getDocId(nid graph.NodeID) (string, error) {
 	if res.IsEmpty() {
 		return id, fmt.Errorf("object %s is absent in database", nid)
 	}
-	err := res.Read(&id)
+	err = res.Read(&id)
 	return id, err
 }
