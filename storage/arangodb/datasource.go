@@ -153,9 +153,25 @@ func (a *arangoSource) IsUpdatedOboGraph(g graph.OboGraph) bool {
 }
 
 func (a *arangoSource) SaveTerms(g graph.OboGraph) (int, error) {
+	query := manager.NewAqlStruct().
+		For("d", a.graphc.Name()).
+		Filter("d", manager.Fil("id", "eq", g.ID())).
+		Return("d._key")
+	res, err := a.database.Get(query.Generate())
+	if err != nil {
+		return 0, err
+	}
+	if res.IsEmpty() {
+		return 0, fmt.Errorf("graph id %s is absent from database", g.ID())
+	}
+	var key string
+	err = res.Read(&key)
+	if err != nil {
+		return 0, err
+	}
 	var dbterms []*dbTerm
 	for _, t := range g.Terms() {
-		dbterms = append(dbterms, a.todbTerm(t))
+		dbterms = append(dbterms, a.todbTerm(key, t))
 	}
 	stat, err := a.termc.ImportDocuments(
 		context.Background(),
@@ -200,7 +216,7 @@ func (a *arangoSource) SaveNewRelationships(g graph.OboGraph) (int, error) {
 	return 0, nil
 }
 
-func (a *arangoSource) todbTerm(t graph.Term) *dbTerm {
+func (a *arangoSource) todbTerm(key string, t graph.Term) *dbTerm {
 	var dbm *dbTermMeta
 	var dps []*dbGraphProps
 	for _, p := range t.Meta().BasicPropertyValues() {
@@ -248,11 +264,12 @@ func (a *arangoSource) todbTerm(t graph.Term) *dbTerm {
 	}
 	dbm.namespace = t.Meta().Namespace()
 	return &dbTerm{
-		id:       string(t.ID()),
-		iri:      t.IRI(),
-		label:    t.Label(),
-		rdfType:  t.RdfType(),
-		metadata: dbm,
+		id:        string(t.ID()),
+		iri:       t.IRI(),
+		label:     t.Label(),
+		rdfType:   t.RdfType(),
+		metadata:  dbm,
+		graph_key: key,
 	}
 }
 
@@ -292,18 +309,18 @@ func (a *arangoSource) todbRelationhip(r graph.Relationship) (*dbRelationship, e
 }
 
 func (a *arangoSource) getDocId(nid graph.NodeID) (string, error) {
-	var id string
+	var key string
 	query := manager.NewAqlStruct().
 		For("d", a.termc.Name()).
 		Filter("d", manager.Fil("id", "eq", string(nid))).
-		Return("d._id")
+		Return("d._key")
 	res, err := a.database.Get(query.Generate())
 	if err != nil {
-		return id, err
+		return key, err
 	}
 	if res.IsEmpty() {
-		return id, fmt.Errorf("object %s is absent in database", nid)
+		return key, fmt.Errorf("object %s is absent in database", nid)
 	}
-	err = res.Read(&id)
-	return id, err
+	err = res.Read(&key)
+	return key, err
 }
