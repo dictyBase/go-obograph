@@ -40,11 +40,12 @@ type dbGraphProps struct {
 }
 
 type dbTerm struct {
-	id       string      `json:"id"`
-	iri      string      `json:"iri"`
-	label    string      `json:"label"`
-	rdfType  string      `json:"rdftype"`
-	metadata *dbTermMeta `json:"metadata"`
+	graph_key string      `json:"graph_key"`
+	id        string      `json:"id"`
+	iri       string      `json:"iri"`
+	label     string      `json:"label"`
+	rdfType   string      `json:"rdftype"`
+	metadata  *dbTermMeta `json:"metadata"`
 }
 
 type dbTermMeta struct {
