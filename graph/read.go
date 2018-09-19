@@ -77,7 +77,7 @@ func buildinverseOfTerm() Term {
 		NodeID("inverseOf"),
 		"PROPERTY",
 		"inverseOf",
-		"http://www.w3.org/2000/01/rdf-schema#rdfs:inverseOf",
+		"http://www.w3.org/2002/07/owl#inverseOf",
 	)
 }
 
@@ -86,7 +86,7 @@ func buildsubPropertyTerm() Term {
 		NodeID("subPropertyOf"),
 		"PROPERTY",
 		"subPropertyOf",
-		"http://www.w3.org/2000/01/rdf-schema#rdfs:subPropertyOf",
+		"http://www.w3.org/2000/01/rdf-schema#subPropertyOf",
 	)
 }
 
@@ -94,8 +94,8 @@ func buildIsaTerm() Term {
 	return NewTerm(
 		NodeID("is_a"),
 		"PROPERTY",
-		"is_a",
-		"http://www.w3.org/2000/01/rdf-schema#rdfs:subClassOf",
+		"subClassOf",
+		"http://www.w3.org/2000/01/rdf-schema#subClassOf",
 	)
 }
 
