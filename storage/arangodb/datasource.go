@@ -152,9 +152,9 @@ func (a *arangoSource) IsUpdatedOboGraph(g graph.OboGraph) bool {
 	return g.Timestamp().After(ts)
 }
 
-func (a *arangoSource) SaveTerms(terms []graph.Term) (int, error) {
+func (a *arangoSource) SaveTerms(g graph.OboGraph) (int, error) {
 	var dbterms []*dbTerm
-	for _, t := range terms {
+	for _, t := range g.Terms() {
 		dbterms = append(dbterms, a.todbTerm(t))
 	}
 	stat, err := a.termc.ImportDocuments(
@@ -168,9 +168,9 @@ func (a *arangoSource) SaveTerms(terms []graph.Term) (int, error) {
 	return int(stat.Created), nil
 }
 
-func (a *arangoSource) SaveRelationships(rels []graph.Relationship) (int, error) {
+func (a *arangoSource) SaveRelationships(g graph.OboGraph) (int, error) {
 	var dbrs []*dbRelationship
-	for _, r := range rels {
+	for _, r := range g.Relationships() {
 		dbrel, err := a.todbRelationhip(r)
 		if err != nil {
 			return 0, err
@@ -188,15 +188,15 @@ func (a *arangoSource) SaveRelationships(rels []graph.Relationship) (int, error)
 	return int(stat.Created), nil
 }
 
-func (a *arangoSource) UpdateTerms(terms []graph.Term) (int, error) {
+func (a *arangoSource) UpdateTerms(g graph.OboGraph) (int, error) {
 	return 0, nil
 }
 
-func (a *arangoSource) SaveOrUpdateTerms(terms []graph.Term) (int, error) {
+func (a *arangoSource) SaveOrUpdateTerms(g graph.OboGraph) (int, error) {
 	return 0, nil
 }
 
-func (a *arangoSource) SaveNewRelationships(rels []graph.Relationship) (int, error) {
+func (a *arangoSource) SaveNewRelationships(g graph.OboGraph) (int, error) {
 	return 0, nil
 }
 

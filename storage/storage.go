@@ -16,13 +16,13 @@ type DataSource interface {
 	// IsUpdatedOboGraph checks for an updated(new timestamp) OBO graph
 	IsUpdatedOboGraph(graph.OboGraph) bool
 	// SaveTerms persist slice of terms in the storage
-	SaveTerms([]graph.Term) (int, error)
+	SaveTerms(graph.OboGraph) (int, error)
 	// UpdateTerms update slice of terms in the storage
-	UpdateTerms([]graph.Term) (int, error)
+	UpdateTerms(graph.OboGraph) (int, error)
 	// SaveorUpdateTerms either insert or update a slice of terms
-	SaveOrUpdateTerms([]graph.Term) (int, error)
+	SaveOrUpdateTerms(graph.OboGraph) (int, error)
 	// SaveRelationships persist slice of relationships in the storage
-	SaveRelationships([]graph.Relationship) (int, error)
+	SaveRelationships(graph.OboGraph) (int, error)
 	// SaveNewRelationships skips the existing one and saves only the new relationships
-	SaveNewRelationships([]graph.Relationship) (int, error)
+	SaveNewRelationships(graph.OboGraph) (int, error)
 }
