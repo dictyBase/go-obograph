@@ -14,6 +14,9 @@ var curieMap = map[string]string{
 	"http://www.geneontology.org/formats/oboInOwl#created_by":          "created_by",
 	"http://www.w3.org/2002/07/owl#deprecated":                         "deprecated",
 	"http://purl.obolibrary.org/obo/IAO_0100001":                       "replaced_by",
+	"http://purl.org/dc/elements/1.1/description":                      "description",
+	"http://purl.org/dc/terms/license":                                 "license",
+	"http://purl.org/dc/elements/1.1/title":                            "title",
 }
 
 type dbGraphInfo struct {
