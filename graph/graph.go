@@ -355,8 +355,8 @@ func (g *graph) AddRelationshipWithID(obj, subj, pred NodeID) error {
 }
 
 func (g *graph) Timestamp() time.Time {
-	//21:06:2018 13:11
-	layout := "02:01:2006 15:04"
+	//06:21:2018 13:11
+	layout := "01:02:2006 15:04"
 	for _, p := range g.Meta().BasicPropertyValues() {
 		if strings.HasSuffix(p.Pred(), "#date") {
 			t, _ := time.Parse(layout, p.Value())
