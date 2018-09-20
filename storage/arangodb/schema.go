@@ -1,8 +1,6 @@
 package arangodb
 
-import (
-	"time"
-)
+import "time"
 
 var curieMap = map[string]string{
 	"http://www.geneontology.org/formats/oboInOwl#date":                "date",
@@ -19,64 +17,64 @@ var curieMap = map[string]string{
 }
 
 type dbGraphInfo struct {
-	id        string       `json:"id"`
-	iri       string       `json:"iri"`
-	label     string       `json:"label"`
-	createdAt time.Time    `json:"created_at"`
-	updatedAt time.Time    `json:"updated_at"`
-	metadata  *dbGraphMeta `json:"metadata"`
+	Id        string       `json:"id"`
+	IRI       string       `json:"iri"`
+	Label     string       `json:"label"`
+	CreatedAt time.Time    `json:"created_at"`
+	UpdatedAt time.Time    `json:"updated_at"`
+	Metadata  *dbGraphMeta `json:"metadata"`
 }
 
 type dbGraphMeta struct {
-	namespace  string          `json:"namespace"`
-	version    string          `json:"version"`
-	properties []*dbGraphProps `json:"properties"`
+	Namespace  string          `json:"namespace"`
+	Version    string          `json:"version"`
+	Properties []*dbGraphProps `json:"properties"`
 }
 
 type dbGraphProps struct {
-	pred  string `json:"pred"`
-	value string `json:"value"`
-	curie string `json:"curie"`
+	Pred  string `json:"pred"`
+	Value string `json:"value"`
+	Curie string `json:"curie"`
 }
 
 type dbTerm struct {
-	graph_key string      `json:"graph_key"`
-	id        string      `json:"id"`
-	iri       string      `json:"iri"`
-	label     string      `json:"label"`
-	rdfType   string      `json:"rdftype"`
-	metadata  *dbTermMeta `json:"metadata"`
+	Graph_key string      `json:"graph_key"`
+	Id        string      `json:"id"`
+	Iri       string      `json:"iri"`
+	Label     string      `json:"label"`
+	RdfType   string      `json:"rdftype"`
+	Metadata  *dbTermMeta `json:"metadata"`
 }
 
 type dbTermMeta struct {
-	namespace  string            `json:"namespace"`
-	comments   []string          `json:"comments"`
-	subsets    []string          `json:"subsets"`
-	definition *dbMetaDefinition `json:"definition"`
-	synonyms   []*dbMetaSynonym  `json:"synonyms"`
-	xrefs      []*dbMetaXref     `json:"xrefs"`
-	properties []*dbGraphProps   `json:"properties"`
+	Namespace  string            `json:"namespace"`
+	Comments   []string          `json:"comments"`
+	Subsets    []string          `json:"subsets"`
+	Definition *dbMetaDefinition `json:"definition"`
+	Synonyms   []*dbMetaSynonym  `json:"synonyms"`
+	Xrefs      []*dbMetaXref     `json:"xrefs"`
+	Properties []*dbGraphProps   `json:"properties"`
 }
 
 type dbMetaDefinition struct {
-	value string   `json:"value"`
-	xrefs []string `json:"xrefs"`
+	Value string   `json:"value"`
+	Xrefs []string `json:"xrefs"`
 }
 
 type dbMetaSynonym struct {
-	value   string   `json:"value"`
-	pred    string   `json:"pred"`
-	scope   string   `json:"scope"`
-	isExact bool     `json:"is_exact"`
-	xrefs   []string `json:"xrefs"`
+	Value   string   `json:"value"`
+	Pred    string   `json:"pred"`
+	Scope   string   `json:"scope"`
+	IsExact bool     `json:"is_exact"`
+	Xrefs   []string `json:"xrefs"`
 }
 
 type dbMetaXref struct {
-	value string `json:"value"`
+	Value string `json:"value"`
 }
 
 type dbRelationship struct {
-	from      string `json:"_from"`
-	to        string `json:"_to"`
-	predicate string `json:"predicate"`
+	From      string `json:"_from"`
+	To        string `json:"_to"`
+	Predicate string `json:"predicate"`
 }

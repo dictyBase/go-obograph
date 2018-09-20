@@ -90,25 +90,30 @@ type arangoSource struct {
 	graphc   driver.Collection
 }
 
+type UserDoc struct {
+	Name string `json:"name"`
+	Age  int    `json:"age"`
+}
+
 func (a *arangoSource) SaveOboGraphInfo(g graph.OboGraph) error {
 	var dp []*dbGraphProps
 	for _, p := range g.Meta().BasicPropertyValues() {
 		dp = append(dp, &dbGraphProps{
-			pred:  p.Pred(),
-			value: p.Value(),
-			curie: curieMap[p.Pred()],
+			Pred:  p.Pred(),
+			Value: p.Value(),
+			Curie: curieMap[p.Pred()],
 		})
 	}
-	dg := &dbGraphInfo{
-		id:        g.ID(),
-		iri:       g.IRI(),
-		label:     g.Label(),
-		createdAt: g.Timestamp(),
-		updatedAt: g.Timestamp(),
-		metadata: &dbGraphMeta{
-			namespace:  g.Meta().Namespace(),
-			version:    g.Meta().Version(),
-			properties: dp,
+	dg := dbGraphInfo{
+		Id:        g.ID(),
+		IRI:       g.IRI(),
+		Label:     g.Label(),
+		CreatedAt: g.Timestamp(),
+		UpdatedAt: g.Timestamp(),
+		Metadata: &dbGraphMeta{
+			Namespace:  g.Meta().Namespace(),
+			Version:    g.Meta().Version(),
+			Properties: dp,
 		},
 	}
 	ctx := driver.WithSilent(context.Background())
@@ -221,89 +226,89 @@ func (a *arangoSource) todbTerm(key string, t graph.Term) *dbTerm {
 	var dps []*dbGraphProps
 	for _, p := range t.Meta().BasicPropertyValues() {
 		dps = append(dps, &dbGraphProps{
-			pred:  p.Pred(),
-			value: p.Value(),
-			curie: curieMap[p.Pred()],
+			Pred:  p.Pred(),
+			Value: p.Value(),
+			Curie: curieMap[p.Pred()],
 		})
 	}
-	dbm.properties = dps
+	dbm.Properties = dps
 
 	if len(t.Meta().Xrefs()) > 0 {
 		var dbx []*dbMetaXref
 		for _, r := range t.Meta().Xrefs() {
-			dbx = append(dbx, &dbMetaXref{value: r.Value()})
+			dbx = append(dbx, &dbMetaXref{Value: r.Value()})
 		}
-		dbm.xrefs = dbx
+		dbm.Xrefs = dbx
 	}
 
 	if len(t.Meta().Synonyms()) > 0 {
 		var dbs []*dbMetaSynonym
 		for _, s := range t.Meta().Synonyms() {
 			dbs = append(dbs, &dbMetaSynonym{
-				value:   s.Value(),
-				pred:    s.Pred(),
-				scope:   s.Scope(),
-				isExact: s.IsExact(),
-				xrefs:   s.Xrefs(),
+				Value:   s.Value(),
+				Pred:    s.Pred(),
+				Scope:   s.Scope(),
+				IsExact: s.IsExact(),
+				Xrefs:   s.Xrefs(),
 			})
 		}
-		dbm.synonyms = dbs
+		dbm.Synonyms = dbs
 	}
 
 	if len(t.Meta().Comments()) > 1 {
-		dbm.comments = t.Meta().Comments()
+		dbm.Comments = t.Meta().Comments()
 	}
 	if len(t.Meta().Subsets()) > 1 {
-		dbm.subsets = t.Meta().Subsets()
+		dbm.Subsets = t.Meta().Subsets()
 	}
 	if t.Meta().Definition() != nil {
-		dbm.definition = &dbMetaDefinition{
-			value: t.Meta().Definition().Value(),
-			xrefs: t.Meta().Definition().Xrefs(),
+		dbm.Definition = &dbMetaDefinition{
+			Value: t.Meta().Definition().Value(),
+			Xrefs: t.Meta().Definition().Xrefs(),
 		}
 	}
-	dbm.namespace = t.Meta().Namespace()
+	dbm.Namespace = t.Meta().Namespace()
 	return &dbTerm{
-		id:        string(t.ID()),
-		iri:       t.IRI(),
-		label:     t.Label(),
-		rdfType:   t.RdfType(),
-		metadata:  dbm,
-		graph_key: key,
+		Id:        string(t.ID()),
+		Iri:       t.IRI(),
+		Label:     t.Label(),
+		RdfType:   t.RdfType(),
+		Metadata:  dbm,
+		Graph_key: key,
 	}
 }
 
 func (a *arangoSource) todbRelationhip(r graph.Relationship) (*dbRelationship, error) {
 	dbr := &dbRelationship{}
 	if v, ok := oMap[r.Object()]; ok {
-		dbr.from = v
+		dbr.From = v
 	} else {
 		id, err := a.getDocId(r.Object())
 		if err != nil {
 			return dbr, err
 		}
 		oMap[r.Object()] = id
-		dbr.from = id
+		dbr.From = id
 	}
 	if v, ok := oMap[r.Subject()]; ok {
-		dbr.to = v
+		dbr.To = v
 	} else {
 		id, err := a.getDocId(r.Subject())
 		if err != nil {
 			return dbr, err
 		}
 		oMap[r.Subject()] = id
-		dbr.from = id
+		dbr.From = id
 	}
 	if v, ok := oMap[r.Predicate()]; ok {
-		dbr.predicate = v
+		dbr.Predicate = v
 	} else {
 		id, err := a.getDocId(r.Predicate())
 		if err != nil {
 			return dbr, err
 		}
 		oMap[r.Predicate()] = id
-		dbr.predicate = id
+		dbr.Predicate = id
 	}
 	return dbr, nil
 }
