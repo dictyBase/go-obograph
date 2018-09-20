@@ -124,7 +124,7 @@ func (a *arangoSource) SaveOboGraphInfo(g graph.OboGraph) error {
 func (a *arangoSource) ExistsOboGraph(g graph.OboGraph) bool {
 	query := manager.NewAqlStruct().
 		For("d", a.graphc.Name()).
-		Filter("d", manager.Fil("id", "eq", g.ID())).
+		Filter("d", manager.Fil("id", "eq", g.ID()), true).
 		Return("d")
 	count, err := a.database.Count(query.Generate())
 	if err != nil {
@@ -142,7 +142,7 @@ func (a *arangoSource) IsUpdatedOboGraph(g graph.OboGraph) bool {
 	}
 	query := manager.NewAqlStruct().
 		For("d", a.graphc.Name()).
-		Filter("d", manager.Fil("id", "eq", g.ID())).
+		Filter("d", manager.Fil("id", "eq", g.ID()), true).
 		Limit(1).
 		Return("d.updated_at")
 	res, err := a.database.Get(query.Generate())
@@ -150,7 +150,7 @@ func (a *arangoSource) IsUpdatedOboGraph(g graph.OboGraph) bool {
 	if err := res.Read(&s); err != nil {
 		return false
 	}
-	ts, err := time.Parse("02:01:2006 15:04", s)
+	ts, err := time.Parse("01:02:2006 15:04", s)
 	if err != nil {
 		return false
 	}
