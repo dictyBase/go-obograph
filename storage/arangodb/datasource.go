@@ -195,6 +195,17 @@ func (a *arangoSource) SaveNewRelationships(g graph.OboGraph) (int, error) {
 }
 
 func (a *arangoSource) todbTerm(key string, t graph.Term) *dbTerm {
+	dbt := &dbTerm{
+		Id:        string(t.ID()),
+		Iri:       t.IRI(),
+		Label:     t.Label(),
+		RdfType:   t.RdfType(),
+		Graph_key: key,
+	}
+	if !t.HasMeta() {
+		return dbt
+	}
+
 	dbm := new(dbTermMeta)
 	var dps []*dbGraphProps
 	if len(t.Meta().BasicPropertyValues()) > 0 {
@@ -243,14 +254,8 @@ func (a *arangoSource) todbTerm(key string, t graph.Term) *dbTerm {
 		}
 	}
 	dbm.Namespace = t.Meta().Namespace()
-	return &dbTerm{
-		Id:        string(t.ID()),
-		Iri:       t.IRI(),
-		Label:     t.Label(),
-		RdfType:   t.RdfType(),
-		Metadata:  dbm,
-		Graph_key: key,
-	}
+	dbt.Metadata = dbm
+	return dbt
 }
 
 func (a *arangoSource) todbRelationhip(r graph.Relationship) (*dbRelationship, error) {
