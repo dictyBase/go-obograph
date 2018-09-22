@@ -1,6 +1,8 @@
 package graph
 
 import (
+	"strings"
+
 	"github.com/dictyBase/go-obograph/model"
 )
 
@@ -19,6 +21,8 @@ type Term interface {
 	Label() string
 	// IRI represents a stable URL for term's information
 	IRI() string
+	// IsDeprecated provides the current status of the term
+	IsDeprecated() bool
 }
 
 type node struct {
@@ -48,6 +52,21 @@ func NewTermWithMeta(id NodeID, m *model.Meta, rdfType, lbl, iri string) Term {
 		lbl:     lbl,
 		iri:     iri,
 	}
+}
+
+// IsDeprecated provides the current status of the term
+func (n *node) IsDeprecated() bool {
+	if !n.HasMeta() {
+		return false
+	}
+	if len(n.meta.BasicPropertyValues()) > 0 {
+		for _, p := range n.meta.BasicPropertyValues() {
+			if strings.HasSuffix(p.Pred(), "#deprecated") {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 // HasMeta check for presence of any metadata
