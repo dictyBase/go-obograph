@@ -8,6 +8,8 @@ import (
 type Term interface {
 	// ID is the term's unique identifier
 	ID() NodeID
+	// HasMeta check for presence of any metadata
+	HasMeta() bool
 	// Meta returns the term's Meta object
 	Meta() *model.Meta
 	// RdfType is one defined rdf type, either of CLASS,
@@ -46,6 +48,14 @@ func NewTermWithMeta(id NodeID, m *model.Meta, rdfType, lbl, iri string) Term {
 		lbl:     lbl,
 		iri:     iri,
 	}
+}
+
+// HasMeta check for presence of any metadata
+func (n *Node) HasMeta() bool {
+	if n.meta != nil {
+		return true
+	}
+	return false
 }
 
 // ID is the term's unique identifier
