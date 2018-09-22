@@ -241,10 +241,10 @@ func (a *arangoSource) todbTerm(id string, t graph.Term) *dbTerm {
 		dbm.Synonyms = dbs
 	}
 
-	if len(t.Meta().Comments()) > 1 {
+	if len(t.Meta().Comments()) > 0 {
 		dbm.Comments = t.Meta().Comments()
 	}
-	if len(t.Meta().Subsets()) > 1 {
+	if len(t.Meta().Subsets()) > 0 {
 		dbm.Subsets = t.Meta().Subsets()
 	}
 	if t.Meta().Definition() != nil {
