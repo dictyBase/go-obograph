@@ -134,7 +134,7 @@ func (a *arangoSource) SaveTerms(g graph.OboGraph) (int, error) {
 	query := manager.NewAqlStruct().
 		For("d", a.graphc.Name()).
 		Filter("d", manager.Fil("id", "eq", g.ID()), true).
-		Return("d._key")
+		Return("d._id")
 	res, err := a.database.Get(query.Generate())
 	if err != nil {
 		return 0, err
@@ -142,14 +142,14 @@ func (a *arangoSource) SaveTerms(g graph.OboGraph) (int, error) {
 	if res.IsEmpty() {
 		return 0, fmt.Errorf("graph id %s is absent from database", g.ID())
 	}
-	var key string
-	err = res.Read(&key)
+	var id string
+	err = res.Read(&id)
 	if err != nil {
 		return 0, err
 	}
 	var dbterms []*dbTerm
 	for _, t := range g.Terms() {
-		dbterms = append(dbterms, a.todbTerm(key, t))
+		dbterms = append(dbterms, a.todbTerm(id, t))
 	}
 	stat, err := a.termc.ImportDocuments(
 		context.Background(),
@@ -194,13 +194,13 @@ func (a *arangoSource) SaveNewRelationships(g graph.OboGraph) (int, error) {
 	return 0, nil
 }
 
-func (a *arangoSource) todbTerm(key string, t graph.Term) *dbTerm {
+func (a *arangoSource) todbTerm(id string, t graph.Term) *dbTerm {
 	dbt := &dbTerm{
-		Id:        string(t.ID()),
-		Iri:       t.IRI(),
-		Label:     t.Label(),
-		RdfType:   t.RdfType(),
-		Graph_key: key,
+		Id:      string(t.ID()),
+		Iri:     t.IRI(),
+		Label:   t.Label(),
+		RdfType: t.RdfType(),
+		GraphId: id,
 	}
 	if !t.HasMeta() {
 		return dbt
@@ -294,18 +294,18 @@ func (a *arangoSource) todbRelationhip(r graph.Relationship) (*dbRelationship, e
 }
 
 func (a *arangoSource) getDocId(nid graph.NodeID) (string, error) {
-	var key string
+	var id string
 	query := manager.NewAqlStruct().
 		For("d", a.termc.Name()).
 		Filter("d", manager.Fil("id", "eq", string(nid))).
-		Return("d._key")
+		Return("d._id")
 	res, err := a.database.Get(query.Generate())
 	if err != nil {
-		return key, err
+		return id, err
 	}
 	if res.IsEmpty() {
-		return key, fmt.Errorf("object %s is absent in database", nid)
+		return id, fmt.Errorf("object %s is absent in database", nid)
 	}
-	err = res.Read(&key)
-	return key, err
+	err = res.Read(&id)
+	return id, err
 }
