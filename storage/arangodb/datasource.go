@@ -196,11 +196,12 @@ func (a *arangoSource) SaveNewRelationships(g graph.OboGraph) (int, error) {
 
 func (a *arangoSource) todbTerm(id string, t graph.Term) *dbTerm {
 	dbt := &dbTerm{
-		Id:      string(t.ID()),
-		Iri:     t.IRI(),
-		Label:   t.Label(),
-		RdfType: t.RdfType(),
-		GraphId: id,
+		Id:         string(t.ID()),
+		Iri:        t.IRI(),
+		Label:      t.Label(),
+		RdfType:    t.RdfType(),
+		Deprecated: t.IsDeprecated(),
+		GraphId:    id,
 	}
 	if !t.HasMeta() {
 		return dbt
