@@ -115,6 +115,37 @@ func TestGraphClassTerm(t *testing.T) {
 	}
 }
 
+func TestGraphDeprecatedTerm(t *testing.T) {
+	r, err := getReader()
+	if err != nil {
+		t.Fatal(err)
+	}
+	g, err := BuildGraph(r)
+	if err != nil {
+		t.Fatal(err)
+	}
+	term := "SO_1000100"
+	if !g.ExistsTerm(NodeID(term)) {
+		t.Fatalf("unable to find term %s", term)
+	}
+	cht := g.GetTerm(NodeID(term))
+	if cht.ID() != NodeID(term) {
+		t.Fatalf("did not match term %s with id %s", term, cht.ID())
+	}
+	if cht.Label() != "mutation_causing_polypeptide_N_terminal_elongation" {
+		t.Fatalf("expected label chromosome does not match %s", cht.Label())
+	}
+	if cht.RdfType() != "CLASS" {
+		t.Fatalf("expected type CLASS does not match %s", cht.RdfType())
+	}
+	if cht.IRI() != "http://purl.obolibrary.org/obo/SO_1000100" {
+		t.Fatalf("did not match term %s with iri %s", term, cht.IRI())
+	}
+	if !cht.IsDeprecated() {
+		t.Fatalf("expect term %s to be deprecated", cht.ID())
+	}
+}
+
 func TestGraphPropertyTerm(t *testing.T) {
 	r, err := getReader()
 	if err != nil {
