@@ -13,8 +13,6 @@ type DataSource interface {
 	SaveOboGraphInfo(graph.OboGraph) error
 	// ExistOboGraph checks for existence of a particular OBO graph
 	ExistsOboGraph(graph.OboGraph) bool
-	// IsUpdatedOboGraph checks for an updated(new timestamp) OBO graph
-	IsUpdatedOboGraph(graph.OboGraph) bool
 	// SaveTerms persist slice of terms in the storage
 	SaveTerms(graph.OboGraph) (int, error)
 	// UpdateTerms update slice of terms in the storage

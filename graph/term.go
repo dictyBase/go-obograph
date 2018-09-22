@@ -51,7 +51,7 @@ func NewTermWithMeta(id NodeID, m *model.Meta, rdfType, lbl, iri string) Term {
 }
 
 // HasMeta check for presence of any metadata
-func (n *Node) HasMeta() bool {
+func (n *node) HasMeta() bool {
 	if n.meta != nil {
 		return true
 	}

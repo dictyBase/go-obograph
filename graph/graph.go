@@ -2,8 +2,6 @@ package graph
 
 import (
 	"fmt"
-	"strings"
-	"time"
 
 	"github.com/dictyBase/go-obograph/model"
 )
@@ -19,8 +17,6 @@ type OboGraph interface {
 	ID() string
 	// Label is a short human readable description of the graph
 	Label() string
-	// Timestamp provides the date associated with the graph
-	Timestamp() time.Time
 	// Meta returns the associated Meta container
 	Meta() *model.Meta
 	// ExistsTerm checks for existence of a term
@@ -352,18 +348,6 @@ func (g *graph) AddRelationshipWithID(obj, subj, pred NodeID) error {
 		g.edgesUp[subj] = map[NodeID]Relationship{obj: rel}
 	}
 	return nil
-}
-
-func (g *graph) Timestamp() time.Time {
-	//06:21:2018 13:11
-	layout := "01:02:2006 15:04"
-	for _, p := range g.Meta().BasicPropertyValues() {
-		if strings.HasSuffix(p.Pred(), "#date") {
-			t, _ := time.Parse(layout, p.Value())
-			return t
-		}
-	}
-	return time.Now()
 }
 
 func termFilter(terms []Term, fn func(Term) bool) []Term {

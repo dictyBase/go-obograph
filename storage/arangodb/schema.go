@@ -1,7 +1,5 @@
 package arangodb
 
-import "time"
-
 var curieMap = map[string]string{
 	"http://www.geneontology.org/formats/oboInOwl#date":                "date",
 	"http://www.geneontology.org/formats/oboInOwl#saved-by":            "saved_by",
@@ -20,12 +18,10 @@ var curieMap = map[string]string{
 }
 
 type dbGraphInfo struct {
-	Id        string       `json:"id"`
-	IRI       string       `json:"iri"`
-	Label     string       `json:"label"`
-	CreatedAt time.Time    `json:"created_at"`
-	UpdatedAt time.Time    `json:"updated_at"`
-	Metadata  *dbGraphMeta `json:"metadata"`
+	Id       string       `json:"id"`
+	IRI      string       `json:"iri"`
+	Label    string       `json:"label"`
+	Metadata *dbGraphMeta `json:"metadata"`
 }
 
 type dbGraphMeta struct {

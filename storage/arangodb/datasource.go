@@ -3,7 +3,6 @@ package arangodb
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"gopkg.in/go-playground/validator.v9"
 
@@ -90,11 +89,7 @@ type arangoSource struct {
 	graphc   driver.Collection
 }
 
-type UserDoc struct {
-	Name string `json:"name"`
-	Age  int    `json:"age"`
-}
-
+// SaveOboGraphInfo perist OBO graphs metadata in the storage
 func (a *arangoSource) SaveOboGraphInfo(g graph.OboGraph) error {
 	var dp []*dbGraphProps
 	for _, p := range g.Meta().BasicPropertyValues() {
@@ -105,11 +100,9 @@ func (a *arangoSource) SaveOboGraphInfo(g graph.OboGraph) error {
 		})
 	}
 	dg := dbGraphInfo{
-		Id:        g.ID(),
-		IRI:       g.IRI(),
-		Label:     g.Label(),
-		CreatedAt: g.Timestamp(),
-		UpdatedAt: g.Timestamp(),
+		Id:    g.ID(),
+		IRI:   g.IRI(),
+		Label: g.Label(),
 		Metadata: &dbGraphMeta{
 			Namespace:  g.Meta().Namespace(),
 			Version:    g.Meta().Version(),
@@ -121,6 +114,7 @@ func (a *arangoSource) SaveOboGraphInfo(g graph.OboGraph) error {
 	return err
 }
 
+// ExistOboGraph checks for existence of a particular OBO graph
 func (a *arangoSource) ExistsOboGraph(g graph.OboGraph) bool {
 	query := manager.NewAqlStruct().
 		For("d", a.graphc.Name()).
@@ -136,31 +130,10 @@ func (a *arangoSource) ExistsOboGraph(g graph.OboGraph) bool {
 	return false
 }
 
-func (a *arangoSource) IsUpdatedOboGraph(g graph.OboGraph) bool {
-	if !a.ExistsOboGraph(g) {
-		return true
-	}
-	query := manager.NewAqlStruct().
-		For("d", a.graphc.Name()).
-		Filter("d", manager.Fil("id", "eq", g.ID()), true).
-		Limit(1).
-		Return("d.updated_at")
-	res, err := a.database.Get(query.Generate())
-	var s string
-	if err := res.Read(&s); err != nil {
-		return false
-	}
-	ts, err := time.Parse("01:02:2006 15:04", s)
-	if err != nil {
-		return false
-	}
-	return g.Timestamp().After(ts)
-}
-
 func (a *arangoSource) SaveTerms(g graph.OboGraph) (int, error) {
 	query := manager.NewAqlStruct().
 		For("d", a.graphc.Name()).
-		Filter("d", manager.Fil("id", "eq", g.ID())).
+		Filter("d", manager.Fil("id", "eq", g.ID()), true).
 		Return("d._key")
 	res, err := a.database.Get(query.Generate())
 	if err != nil {
@@ -222,16 +195,18 @@ func (a *arangoSource) SaveNewRelationships(g graph.OboGraph) (int, error) {
 }
 
 func (a *arangoSource) todbTerm(key string, t graph.Term) *dbTerm {
-	var dbm *dbTermMeta
+	dbm := new(dbTermMeta)
 	var dps []*dbGraphProps
-	for _, p := range t.Meta().BasicPropertyValues() {
-		dps = append(dps, &dbGraphProps{
-			Pred:  p.Pred(),
-			Value: p.Value(),
-			Curie: curieMap[p.Pred()],
-		})
+	if len(t.Meta().BasicPropertyValues()) > 0 {
+		for _, p := range t.Meta().BasicPropertyValues() {
+			dps = append(dps, &dbGraphProps{
+				Pred:  p.Pred(),
+				Value: p.Value(),
+				Curie: curieMap[p.Pred()],
+			})
+		}
+		dbm.Properties = dps
 	}
-	dbm.Properties = dps
 
 	if len(t.Meta().Xrefs()) > 0 {
 		var dbx []*dbMetaXref
