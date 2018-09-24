@@ -13,13 +13,13 @@ type DataSource interface {
 	SaveOboGraphInfo(graph.OboGraph) error
 	// ExistOboGraph checks for existence of a particular OBO graph
 	ExistsOboGraph(graph.OboGraph) bool
-	// SaveTerms persist slice of terms in the storage
+	// SaveTerms persist all terms in the storage
 	SaveTerms(graph.OboGraph) (int, error)
-	// UpdateTerms update slice of terms in the storage
+	// UpdateTerms update existing terms in the storage
 	UpdateTerms(graph.OboGraph) (int, error)
-	// SaveorUpdateTerms either insert or update a slice of terms
+	// SaveorUpdateTerms either insert or update terms
 	SaveOrUpdateTerms(graph.OboGraph) (int, error)
-	// SaveRelationships persist slice of relationships in the storage
+	// SaveRelationships persist all relationships in the storage
 	SaveRelationships(graph.OboGraph) (int, error)
 	// SaveNewRelationships skips the existing one and saves only the new relationships
 	SaveNewRelationships(graph.OboGraph) (int, error)
