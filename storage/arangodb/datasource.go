@@ -279,7 +279,7 @@ func (a *arangoSource) todbRelationhip(r graph.Relationship) (*dbRelationship, e
 			return dbr, err
 		}
 		oMap[r.Subject()] = id
-		dbr.From = id
+		dbr.To = id
 	}
 	if v, ok := oMap[r.Predicate()]; ok {
 		dbr.Predicate = v
@@ -298,7 +298,7 @@ func (a *arangoSource) getDocId(nid graph.NodeID) (string, error) {
 	var id string
 	query := manager.NewAqlStruct().
 		For("d", a.termc.Name()).
-		Filter("d", manager.Fil("id", "eq", string(nid))).
+		Filter("d", manager.Fil("id", "eq", string(nid)), true).
 		Return("d._id")
 	res, err := a.database.Get(query.Generate())
 	if err != nil {
