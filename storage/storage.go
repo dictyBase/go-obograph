@@ -17,8 +17,8 @@ type DataSource interface {
 	SaveTerms(graph.OboGraph) (int, error)
 	// UpdateTerms update existing terms in the storage
 	UpdateTerms(graph.OboGraph) (int, error)
-	// SaveorUpdateTerms either insert or update terms
-	SaveOrUpdateTerms(graph.OboGraph) (int, error)
+	// SaveorUpdateTerms either insert or update terms in the storage
+	SaveOrUpdateTerms(graph.OboGraph) (int, int, error)
 	// SaveRelationships persist all relationships in the storage
 	SaveRelationships(graph.OboGraph) (int, error)
 	// SaveNewRelationships skips the existing one and saves only the new relationships
