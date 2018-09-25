@@ -31,6 +31,7 @@ func BuildGraph(r io.Reader) (OboGraph, error) {
 	g.AddTerm(buildsubPropertyTerm())
 	g.AddTerm(buildinverseOfTerm())
 	g.AddTerm(buildTypeTerm())
+	g.AddTerm(buildtopObjectPropertyTerm())
 	for _, jn := range og.Nodes {
 		g.AddTerm(buildTerm(jn))
 	}
@@ -79,6 +80,15 @@ func buildTypeTerm() Term {
 		"PROPERTY",
 		"type",
 		"https://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+	)
+}
+
+func buildtopObjectPropertyTerm() Term {
+	return NewTerm(
+		NodeID("topObjectProperty"),
+		"PROPERTY",
+		"topObjectProperty",
+		"http://www.w3.org/2002/07/owl#topObjectProperty",
 	)
 }
 
