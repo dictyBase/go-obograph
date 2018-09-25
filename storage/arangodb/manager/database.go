@@ -42,7 +42,7 @@ func (d *Database) Count(query string) (int64, error) {
 	return c.Count(), nil
 }
 
-// Get read single row of result to i interface
+// Get query the database to return single row of result
 func (d *Database) Get(query string) (*Result, error) {
 	// validate
 	if err := d.dbh.ValidateQuery(context.Background(), query); err != nil {

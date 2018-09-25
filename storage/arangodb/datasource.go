@@ -91,23 +91,11 @@ type arangoSource struct {
 
 // SaveOboGraphInfo perist OBO graphs metadata in the storage
 func (a *arangoSource) SaveOboGraphInfo(g graph.OboGraph) error {
-	var dp []*dbGraphProps
-	for _, p := range g.Meta().BasicPropertyValues() {
-		dp = append(dp, &dbGraphProps{
-			Pred:  p.Pred(),
-			Value: p.Value(),
-			Curie: curieMap[p.Pred()],
-		})
-	}
 	dg := dbGraphInfo{
-		Id:    g.ID(),
-		IRI:   g.IRI(),
-		Label: g.Label(),
-		Metadata: &dbGraphMeta{
-			Namespace:  g.Meta().Namespace(),
-			Version:    g.Meta().Version(),
-			Properties: dp,
-		},
+		Id:       g.ID(),
+		IRI:      g.IRI(),
+		Label:    g.Label(),
+		Metadata: a.todbGraphMeta(g),
 	}
 	ctx := driver.WithSilent(context.Background())
 	_, err := a.graphc.CreateDocument(ctx, dg)
@@ -192,6 +180,22 @@ func (a *arangoSource) SaveOrUpdateTerms(g graph.OboGraph) (int, error) {
 
 func (a *arangoSource) SaveNewRelationships(g graph.OboGraph) (int, error) {
 	return 0, nil
+}
+
+func (a *arangoSource) todbGraphMeta(g graph.OboGraph) *dbGraphMeta {
+	var dp []*dbGraphProps
+	for _, p := range g.Meta().BasicPropertyValues() {
+		dp = append(dp, &dbGraphProps{
+			Pred:  p.Pred(),
+			Value: p.Value(),
+			Curie: curieMap[p.Pred()],
+		})
+	}
+	return &dbGraphMeta{
+		Namespace:  g.Meta().Namespace(),
+		Version:    g.Meta().Version(),
+		Properties: dp,
+	}
 }
 
 func (a *arangoSource) todbTerm(id string, t graph.Term) *dbTerm {
