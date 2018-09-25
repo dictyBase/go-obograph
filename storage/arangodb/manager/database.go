@@ -42,6 +42,17 @@ func (d *Database) Count(query string) (int64, error) {
 	return c.Count(), nil
 }
 
+// Do is to run data modification query
+func (d *Database) Do(query string) error {
+	// validate
+	if err := d.dbh.ValidateQuery(context.Background(), query); err != nil {
+		return err
+	}
+	ctx := driver.WithSilent(context.Background())
+	_, err := d.dbh.Query(ctx, query, nil)
+	return fmt.Errorf("error in data modification query %s", err)
+}
+
 // Get query the database to return single row of result
 func (d *Database) Get(query string) (*Result, error) {
 	// validate
