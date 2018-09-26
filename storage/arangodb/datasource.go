@@ -119,7 +119,7 @@ func (a *arangoSource) ExistsOboGraph(g graph.OboGraph) bool {
 }
 
 func (a *arangoSource) SaveTerms(g graph.OboGraph) (int, error) {
-	id, err := a.graphCollKey(g)
+	id, err := a.graphDocId(g)
 	if err != nil {
 		return 0, err
 	}
@@ -163,8 +163,9 @@ func (a *arangoSource) UpdateTerms(g graph.OboGraph) (int, error) {
 }
 
 func (a *arangoSource) SaveOrUpdateTerms(g graph.OboGraph) (int, int, error) {
-	if !a.ExistsOboGraph(g) {
-		return 0, 0, fmt.Errorf("graph with id %s is absent from database, cannot be updated", g.ID())
+	key, err := a.graphDocKey(g)
+	if err != nil {
+		return 0, 0, err
 	}
 	dg := dbGraphInfo{
 		Metadata: a.todbGraphMeta(g),
@@ -323,7 +324,7 @@ func (a *arangoSource) getDocId(nid graph.NodeID) (string, error) {
 	return id, err
 }
 
-func (a *arangoSource) graphDocKey(g graph.OboGraph) (string, error) {
+func (a *arangoSource) graphDocId(g graph.OboGraph) (string, error) {
 	query := manager.NewAqlStruct().
 		For("d", a.graphc.Name()).
 		Filter("d", manager.Fil("id", "eq", g.ID()), true).
@@ -341,4 +342,24 @@ func (a *arangoSource) graphDocKey(g graph.OboGraph) (string, error) {
 		return 0, err
 	}
 	return id, err
+}
+
+func (a *arangoSource) graphDocKey(g graph.OboGraph) (string, error) {
+	query := manager.NewAqlStruct().
+		For("d", a.graphc.Name()).
+		Filter("d", manager.Fil("id", "eq", g.ID()), true).
+		Return("d._key")
+	res, err := a.database.Get(query.Generate())
+	if err != nil {
+		return 0, err
+	}
+	if res.IsEmpty() {
+		return 0, fmt.Errorf("graph id %s is absent from database", g.ID())
+	}
+	var key string
+	err = res.Read(&key)
+	if err != nil {
+		return 0, err
+	}
+	return key, err
 }
