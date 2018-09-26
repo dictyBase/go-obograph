@@ -7,6 +7,7 @@ import (
 	"gopkg.in/go-playground/validator.v9"
 
 	driver "github.com/arangodb/go-driver"
+	"github.com/dictyBase/go-obograph/generate"
 	"github.com/dictyBase/go-obograph/graph"
 	"github.com/dictyBase/go-obograph/storage"
 	"github.com/dictyBase/go-obograph/storage/arangodb/manager"
@@ -186,7 +187,27 @@ func (a *arangoSource) SaveOrUpdateTerms(g graph.OboGraph) (int, int, error) {
 	if err != nil {
 		return 0, 0, err
 	}
-	return 1, 1, nil
+	tmpColl, err := a.database.CreateCollection(
+		generate.RandString(13),
+		&driver.CreateCollectionOptions{},
+	)
+	if err != nil {
+		return 0, 0, err
+	}
+	//defer tmpColl.Remove(nil)
+	var dbterms []*dbTerm
+	for _, t := range g.Terms() {
+		dbterms = append(dbterms, a.todbTerm(id, t))
+	}
+	stat, err := tmpColl.ImportDocuments(
+		context.Background(),
+		dbterms,
+		&driver.ImportDocumentOptions{Complete: true},
+	)
+	if err != nil {
+		return 0, 0, err
+	}
+	return int(stat.Created), 1, nil
 }
 
 func (a *arangoSource) SaveNewRelationships(g graph.OboGraph) (int, error) {
