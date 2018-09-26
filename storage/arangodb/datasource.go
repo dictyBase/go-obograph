@@ -119,19 +119,7 @@ func (a *arangoSource) ExistsOboGraph(g graph.OboGraph) bool {
 }
 
 func (a *arangoSource) SaveTerms(g graph.OboGraph) (int, error) {
-	query := manager.NewAqlStruct().
-		For("d", a.graphc.Name()).
-		Filter("d", manager.Fil("id", "eq", g.ID()), true).
-		Return("d._id")
-	res, err := a.database.Get(query.Generate())
-	if err != nil {
-		return 0, err
-	}
-	if res.IsEmpty() {
-		return 0, fmt.Errorf("graph id %s is absent from database", g.ID())
-	}
-	var id string
-	err = res.Read(&id)
+	id, err := a.graphCollKey(g)
 	if err != nil {
 		return 0, err
 	}
@@ -174,8 +162,28 @@ func (a *arangoSource) UpdateTerms(g graph.OboGraph) (int, error) {
 	return 0, nil
 }
 
-func (a *arangoSource) SaveOrUpdateTerms(g graph.OboGraph) (int, error) {
-	return 0, nil
+func (a *arangoSource) SaveOrUpdateTerms(g graph.OboGraph) (int, int, error) {
+	if !a.ExistsOboGraph(g) {
+		return 0, 0, fmt.Errorf("graph with id %s is absent from database, cannot be updated", g.ID())
+	}
+	dg := dbGraphInfo{
+		Metadata: a.todbGraphMeta(g),
+	}
+	base := manager.NewAqlStruct().
+		For("d", a.graphc.Name()).
+		Filter("d", manager.Fil("id", "eq", g.ID()), true)
+	query := fmt.Sprintf(`
+		%s UPDATE d WITH @data IN %s`,
+		base.Generate(), a.graphc.Name(),
+	)
+	bindVars := map[string]interface{}{
+		"data": dg,
+	}
+	err := a.database.Do(query, bindVars)
+	if err != nil {
+		return 0, 0, fmt.Errorf("error in updating the graph %s", err)
+	}
+	return 1, 1, nil
 }
 
 func (a *arangoSource) SaveNewRelationships(g graph.OboGraph) (int, error) {
@@ -312,5 +320,25 @@ func (a *arangoSource) getDocId(nid graph.NodeID) (string, error) {
 		return id, fmt.Errorf("object %s is absent in database", nid)
 	}
 	err = res.Read(&id)
+	return id, err
+}
+
+func (a *arangoSource) graphDocKey(g graph.OboGraph) (string, error) {
+	query := manager.NewAqlStruct().
+		For("d", a.graphc.Name()).
+		Filter("d", manager.Fil("id", "eq", g.ID()), true).
+		Return("d._id")
+	res, err := a.database.Get(query.Generate())
+	if err != nil {
+		return 0, err
+	}
+	if res.IsEmpty() {
+		return 0, fmt.Errorf("graph id %s is absent from database", g.ID())
+	}
+	var id string
+	err = res.Read(&id)
+	if err != nil {
+		return 0, err
+	}
 	return id, err
 }
