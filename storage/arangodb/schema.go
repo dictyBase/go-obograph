@@ -18,22 +18,22 @@ var curieMap = map[string]string{
 }
 
 type dbGraphInfo struct {
-	Id       string       `json:"id"`
-	IRI      string       `json:"iri"`
-	Label    string       `json:"label"`
-	Metadata *dbGraphMeta `json:"metadata"`
+	Id       string       `json:"id,omitempty"`
+	IRI      string       `json:"iri,omitempty"`
+	Label    string       `json:"label,omitempty"`
+	Metadata *dbGraphMeta `json:"metadata,omitempty"`
 }
 
 type dbGraphMeta struct {
 	Namespace  string          `json:"namespace"`
 	Version    string          `json:"version"`
-	Properties []*dbGraphProps `json:"properties"`
+	Properties []*dbGraphProps `json:"properties,omitempty"`
 }
 
 type dbGraphProps struct {
-	Pred  string `json:"pred"`
-	Value string `json:"value"`
-	Curie string `json:"curie"`
+	Pred  string `json:"pred,omitempty"`
+	Value string `json:"value,omitempty"`
+	Curie string `json:"curie,omitempty"`
 }
 
 type dbTerm struct {
