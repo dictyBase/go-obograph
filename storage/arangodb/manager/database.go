@@ -43,14 +43,13 @@ func (d *Database) Count(query string) (int64, error) {
 }
 
 // Do is to run data modification query
-func (d *Database) Do(query string) error {
-	// validate
-	if err := d.dbh.ValidateQuery(context.Background(), query); err != nil {
-		return err
-	}
+func (d *Database) Do(query string, bindVars map[string]interface{}) error {
 	ctx := driver.WithSilent(context.Background())
-	_, err := d.dbh.Query(ctx, query, nil)
-	return fmt.Errorf("error in data modification query %s", err)
+	_, err := d.dbh.Query(ctx, query, bindVars)
+	if err != nil {
+		return fmt.Errorf("error in data modification query %s", err)
+	}
+	return nil
 }
 
 // Get query the database to return single row of result
