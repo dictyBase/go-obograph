@@ -162,29 +162,27 @@ func (a *arangoSource) UpdateTerms(g graph.OboGraph) (int, error) {
 	return 0, nil
 }
 
-func (a *arangoSource) SaveOrUpdateTerms(g graph.OboGraph) (int, int, error) {
+func (a *arangoSource) UpdateOboGraphInfo(g graph.OboGraph) error {
 	key, err := a.graphDocKey(g)
 	if err != nil {
-		return 0, 0, err
+		return err
 	}
 	dg := dbGraphInfo{
 		Metadata: a.todbGraphMeta(g),
 	}
-	base := manager.NewAqlStruct().
-		For("d", a.graphc.Name()).
-		Filter("d", manager.Fil("id", "eq", g.ID()), true)
-	query := fmt.Sprintf(`
-		%s UPDATE d WITH @data IN %s`,
-		base.Generate(), a.graphc.Name(),
+	_, err = a.graphc.UpdateDocument(
+		driver.WithSilent(context.Background()),
+		key,
+		dg,
 	)
-	bindVars := map[string]interface{}{
-		"data": dg,
-	}
-	err := a.database.Do(query, bindVars)
 	if err != nil {
-		return 0, 0, fmt.Errorf("error in updating the graph %s", err)
+		return fmt.Errorf("error in updating the graph %s", err)
 	}
-	return 1, 1, nil
+	return nil
+}
+
+func (a *arangoSource) SaveOrUpdateTerms(g graph.OboGraph) (int, int, error) {
+	return 0, 0, nil
 }
 
 func (a *arangoSource) SaveNewRelationships(g graph.OboGraph) (int, error) {
@@ -325,41 +323,41 @@ func (a *arangoSource) getDocId(nid graph.NodeID) (string, error) {
 }
 
 func (a *arangoSource) graphDocId(g graph.OboGraph) (string, error) {
+	var id string
 	query := manager.NewAqlStruct().
 		For("d", a.graphc.Name()).
 		Filter("d", manager.Fil("id", "eq", g.ID()), true).
 		Return("d._id")
 	res, err := a.database.Get(query.Generate())
 	if err != nil {
-		return 0, err
+		return id, err
 	}
 	if res.IsEmpty() {
-		return 0, fmt.Errorf("graph id %s is absent from database", g.ID())
+		return id, fmt.Errorf("graph id %s is absent from database", g.ID())
 	}
-	var id string
 	err = res.Read(&id)
 	if err != nil {
-		return 0, err
+		return id, err
 	}
 	return id, err
 }
 
 func (a *arangoSource) graphDocKey(g graph.OboGraph) (string, error) {
+	var key string
 	query := manager.NewAqlStruct().
 		For("d", a.graphc.Name()).
 		Filter("d", manager.Fil("id", "eq", g.ID()), true).
 		Return("d._key")
 	res, err := a.database.Get(query.Generate())
 	if err != nil {
-		return 0, err
+		return key, err
 	}
 	if res.IsEmpty() {
-		return 0, fmt.Errorf("graph id %s is absent from database", g.ID())
+		return key, fmt.Errorf("graph id %s is absent from database", g.ID())
 	}
-	var key string
 	err = res.Read(&key)
 	if err != nil {
-		return 0, err
+		return key, err
 	}
 	return key, err
 }

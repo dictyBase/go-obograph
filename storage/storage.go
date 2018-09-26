@@ -11,6 +11,8 @@ import (
 type DataSource interface {
 	// SaveOboGraphInfo perist OBO graphs metadata in the storage
 	SaveOboGraphInfo(graph.OboGraph) error
+	// UpdateOboGraphInfo update OBO graph metadata in the storage
+	UpdateOboGraphInfo(graph.OboGraph) error
 	// ExistOboGraph checks for existence of a particular OBO graph
 	ExistsOboGraph(graph.OboGraph) bool
 	// SaveTerms persist all terms in the storage
