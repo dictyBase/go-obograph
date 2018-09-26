@@ -182,7 +182,11 @@ func (a *arangoSource) UpdateOboGraphInfo(g graph.OboGraph) error {
 }
 
 func (a *arangoSource) SaveOrUpdateTerms(g graph.OboGraph) (int, int, error) {
-	return 0, 0, nil
+	id, err := a.graphDocId(g)
+	if err != nil {
+		return 0, 0, err
+	}
+	return 1, 1, nil
 }
 
 func (a *arangoSource) SaveNewRelationships(g graph.OboGraph) (int, error) {
