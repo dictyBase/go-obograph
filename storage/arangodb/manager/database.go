@@ -52,6 +52,12 @@ func (d *Database) Do(query string, bindVars map[string]interface{}) error {
 	return nil
 }
 
+// Run is to run data modification query that is expected to return a result
+// It is a convenient alias for Get method
+func (d *Database) Run(query string) (*Result, error) {
+	return d.Get(query)
+}
+
 // Get query the database to return single row of result
 func (d *Database) Get(query string) (*Result, error) {
 	// validate
