@@ -25,7 +25,11 @@ func (r *Resultset) Scan() bool {
 	if r.empty {
 		return r.empty
 	}
-	return r.cursor.HasMore()
+	if r.cursor.HasMore() {
+		return true
+	}
+	r.cursor.Close()
+	return false
 }
 
 // Read read the row of data to interface i
