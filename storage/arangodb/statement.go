@@ -57,16 +57,16 @@ const (
 		`
 )
 
-func termInsert(n, g, t, temp string) string {
+func termInsert(gname, gcoll, tcoll, temp string) string {
 	return fmt.Sprintf(
 		tinst,
-		g, n, t, temp, temp, t,
+		gcoll, gname, tcoll, temp, temp, tcoll,
 	)
 }
 
-func termUpdate(n, g, t, temp string) string {
+func termUpdate(gname, gcoll, tcoll, temp string) string {
 	return fmt.Sprintf(
 		tupdt,
-		g, n, t, temp, temp, t, t,
+		gcoll, gname, tcoll, temp, temp, tcoll, tcoll,
 	)
 }
