@@ -42,7 +42,7 @@ func (d *Database) Count(query string) (int64, error) {
 	return c.Count(), nil
 }
 
-// Do is to run data modification query
+// Do is to run data modification query that is not expected to return any result
 func (d *Database) Do(query string, bindVars map[string]interface{}) error {
 	ctx := driver.WithSilent(context.Background())
 	_, err := d.dbh.Query(ctx, query, bindVars)
