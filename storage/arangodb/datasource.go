@@ -189,14 +189,14 @@ func (a *arangoSource) SaveOrUpdateTerms(g graph.OboGraph) (int, int, error) {
 	icount := 0
 	id, err := a.graphDocId(g)
 	if err != nil {
-		return ucount, icount, err
+		return icount, ucount, err
 	}
 	tmpColl, err := a.database.CreateCollection(
 		generate.RandString(13),
 		&driver.CreateCollectionOptions{},
 	)
 	if err != nil {
-		return ucount, icount, err
+		return icount, ucount, err
 	}
 	defer tmpColl.Remove(nil)
 	var dbterms []*dbTerm
@@ -209,7 +209,7 @@ func (a *arangoSource) SaveOrUpdateTerms(g graph.OboGraph) (int, int, error) {
 		&driver.ImportDocumentOptions{Complete: true},
 	)
 	if err != nil {
-		return ucount, icount, err
+		return icount, ucount, err
 	}
 	// update terms
 	ru, err := a.database.Run(termUpdate(
@@ -219,10 +219,10 @@ func (a *arangoSource) SaveOrUpdateTerms(g graph.OboGraph) (int, int, error) {
 		tmpColl.Name(),
 	))
 	if err != nil {
-		return ucount, icount, fmt.Errorf("unable to run term update query %s", err)
+		return icount, ucount, fmt.Errorf("unable to run term update query %s", err)
 	}
 	if err := ru.Read(&ucount); err != nil {
-		return ucount, icount, fmt.Errorf("error in reading number of updates %s", err)
+		return icount, ucount, fmt.Errorf("error in reading number of updates %s", err)
 	}
 
 	//insert new terms
@@ -233,12 +233,12 @@ func (a *arangoSource) SaveOrUpdateTerms(g graph.OboGraph) (int, int, error) {
 		tmpColl.Name(),
 	))
 	if err != nil {
-		return ucount, icount, fmt.Errorf("unable to run term insert query %s", err)
+		return icount, ucount, fmt.Errorf("unable to run term insert query %s", err)
 	}
 	if err := ri.Read(&icount); err != nil {
-		return ucount, icount, fmt.Errorf("error in reading number of inserts %s", err)
+		return icount, ucount, fmt.Errorf("error in reading number of inserts %s", err)
 	}
-	return ucount, icount, nil
+	return icount, ucount, nil
 }
 
 func (a *arangoSource) SaveNewRelationships(g graph.OboGraph) (int, error) {
