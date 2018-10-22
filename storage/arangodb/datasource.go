@@ -241,8 +241,54 @@ func (a *arangoSource) SaveOrUpdateTerms(g graph.OboGraph) (int, int, error) {
 	return icount, ucount, nil
 }
 
+// SaveNewRelationships saves only the new relationships that are absent in the storage
 func (a *arangoSource) SaveNewRelationships(g graph.OboGraph) (int, error) {
-	return 0, nil
+	ncount := 0
+	tmpColl, err := a.database.CreateCollection(
+		generate.RandString(12),
+		&driver.CreateCollectionOptions{
+			Type: driver.CollectionTypeEdge,
+		},
+	)
+	if err != nil {
+		return ncount, err
+	}
+	defer tmpColl.Remove(nil)
+	var dbrs []*dbRelationship
+	for _, r := range g.Relationships() {
+		dbrel, err := a.todbRelationhip(r)
+		if err != nil {
+			return 0, err
+		}
+		dbrs = append(dbrs, dbrel)
+	}
+	_, err := tmpColl.ImportDocuments(
+		context.Background(),
+		dbrs,
+		&driver.ImportDocumentOptions{Complete: true},
+	)
+	if err != nil {
+		return ncount,
+			fmt.Sprintf(
+				"error in inserting relationships in temp collection %s %s",
+				tmpColl.Name(), err,
+			)
+	}
+	r, err := a.database.Run(relInsert(
+		g.ID(),
+		a.graphc.Name(),
+		a.termc.Name(),
+		a.relc.Name(),
+		"graph",
+		tmpColl.Name(),
+	))
+	if err != nil {
+		return ncount, fmt.Errorf("unable to run new relationships insert query %s", err)
+	}
+	if err := r.Read(&ncount); err != nil {
+		return ncount, fmt.Errorf("error in reading in no of relationship insert %s", err)
+	}
+	return ncount, nil
 }
 
 func (a *arangoSource) todbGraphMeta(g graph.OboGraph) *dbGraphMeta {
