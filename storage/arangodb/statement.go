@@ -55,6 +55,34 @@ const (
 	                   COLLECT WITH COUNT INTO c
 	                   RETURN c
 		`
+	rinst = `
+		FOR c IN %s
+		    FOR cvt IN %s
+		        FILTER c.id == %s
+		        FILTER c._id == cvt.graph_id
+		        LET nch = MINUS (
+		            FOR v IN 1..1 OUTBOUND cvt %s
+		            OPTIONS { bfs: true, uniqueVertices: 'global' }
+		            RETURN v.id,
+		            FOR v IN 1..1 OUTBOUND cvt GRAPH %s
+		            OPTIONS { bfs: true, uniqueVertices: 'global' }
+		            RETURN v.id
+		        )
+		        FILTER LENGTH(nch) > 0
+				FOR n IN nch
+					FOR z IN %s
+		                FOR cvtn IN %s
+		                    FILTER n == cvtn.id
+		                    FILTER cvtn._id == z._to
+		                    FILTER cvt._id == z._from
+		                    INSERT {
+		                        _from: z._from,
+		                        _to: z._to,
+		                        predicate: z.predicate
+		                    } IN %s
+		                    COLLECT WITH COUNT INTO c
+		                    RETURN c
+		`
 )
 
 func termInsert(gname, gcoll, tcoll, temp string) string {
@@ -68,5 +96,13 @@ func termUpdate(gname, gcoll, tcoll, temp string) string {
 	return fmt.Sprintf(
 		tupdt,
 		gcoll, gname, tcoll, temp, temp, tcoll, tcoll,
+	)
+}
+
+func relInsert(gname, gcoll, tcoll, rcoll, graph, temp string) string {
+	return fmt.Sprintf(
+		rinst,
+		gcoll, tcoll, gname, temp,
+		tcoll, temp, tcoll, rcoll,
 	)
 }
