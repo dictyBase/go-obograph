@@ -36,6 +36,8 @@ type CollectionParams struct {
 	Relationship string `validate:"required"`
 	// GraphInfo is the collection for storing graph metadata
 	GraphInfo string `validate:"required"`
+	// OboGraph is the named graph for connecting term and relationship collections
+	OboGraph string `validate:"required"`
 }
 
 func NewDataSource(connP *ConnectParams, collP *CollectionParams) (storage.DataSource, error) {
@@ -73,12 +75,26 @@ func NewDataSource(connP *ConnectParams, collP *CollectionParams) (storage.DataS
 	if err != nil {
 		return ds, err
 	}
+	obog, err := db.FindOrCreateGraph(
+		collP.OboGraph,
+		[]driver.EdgeDefinition{
+			driver.EdgeDefinition{
+				Collection: relc.Name(),
+				From:       []string{termc.Name()},
+				To:         []string{termc.Name()},
+			},
+		},
+	)
+	if err != nil {
+		return ds, err
+	}
 	return &arangoSource{
 		sess:     sess,
 		database: db,
 		termc:    termc,
 		relc:     relc,
 		graphc:   graphc,
+		obog:     obog,
 	}, nil
 }
 
@@ -88,6 +104,7 @@ type arangoSource struct {
 	termc    driver.Collection
 	relc     driver.Collection
 	graphc   driver.Collection
+	obog     driver.Graph
 }
 
 // SaveOboGraphInfo perist OBO graphs metadata in the storage
@@ -262,14 +279,14 @@ func (a *arangoSource) SaveNewRelationships(g graph.OboGraph) (int, error) {
 		}
 		dbrs = append(dbrs, dbrel)
 	}
-	_, err := tmpColl.ImportDocuments(
+	_, err = tmpColl.ImportDocuments(
 		context.Background(),
 		dbrs,
 		&driver.ImportDocumentOptions{Complete: true},
 	)
 	if err != nil {
 		return ncount,
-			fmt.Sprintf(
+			fmt.Errorf(
 				"error in inserting relationships in temp collection %s %s",
 				tmpColl.Name(), err,
 			)
