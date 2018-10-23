@@ -45,6 +45,8 @@ const (
 		FOR ins in INTERSECTION(latest,existing)
 			    FOR lcvt in %s
 			        FOR ecvt in %s
+						FILTER lcvt.graph_id == fcv[0]
+						FILTER ecvt.graph_id == fcv[0]
 		                FILTER ins == lcvt.id
 		                FILTER ins == ecvt.id
 		                UPDATE {
@@ -58,13 +60,13 @@ const (
 	rinst = `
 		FOR c IN %s
 		    FOR cvt IN %s
-		        FILTER c.id == %s
+		        FILTER c.id == "%s"
 		        FILTER c._id == cvt.graph_id
 		        LET nch = MINUS (
 		            FOR v IN 1..1 OUTBOUND cvt %s
 		            OPTIONS { bfs: true, uniqueVertices: 'global' }
 		            RETURN v.id,
-		            FOR v IN 1..1 OUTBOUND cvt GRAPH %s
+		            FOR v IN 1..1 OUTBOUND cvt GRAPH "%s"
 		            OPTIONS { bfs: true, uniqueVertices: 'global' }
 		            RETURN v.id
 		        )
@@ -103,6 +105,6 @@ func relInsert(gname, gcoll, tcoll, rcoll, graph, temp string) string {
 	return fmt.Sprintf(
 		rinst,
 		gcoll, tcoll, gname, temp,
-		tcoll, temp, tcoll, rcoll,
+		graph, temp, tcoll, rcoll,
 	)
 }

@@ -296,7 +296,7 @@ func (a *arangoSource) SaveNewRelationships(g graph.OboGraph) (int, error) {
 		a.graphc.Name(),
 		a.termc.Name(),
 		a.relc.Name(),
-		"graph",
+		a.obog.Name(),
 		tmpColl.Name(),
 	))
 	if err != nil {
