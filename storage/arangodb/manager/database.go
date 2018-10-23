@@ -100,6 +100,23 @@ func (d *Database) CreateCollection(name string, opt *driver.CreateCollectionOpt
 	return d.dbh.CreateCollection(nil, name, opt)
 }
 
+// FindOrCreateGraph finds or creates a named graph in the database
+func (d *Database) FindOrCreateGraph(name string, defs []driver.EdgeDefinition) (driver.Graph, error) {
+	var g driver.Graph
+	ok, err := d.dbh.GraphExists(context.Background(), name)
+	if err != nil {
+		return g, fmt.Errorf("error in graph %s lookup %s", name, err)
+	}
+	if ok {
+		return d.dbh.Graph(context.Background(), name)
+	}
+	return d.dbh.CreateGraph(
+		context.Background(),
+		name,
+		&driver.CreateGraphOptions{EdgeDefinitions: defs},
+	)
+}
+
 // Drop removes the database
 func (d *Database) Drop() error {
 	return d.dbh.Remove(context.Background())
