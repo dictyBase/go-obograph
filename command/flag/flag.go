@@ -5,8 +5,8 @@ import (
 	cli "gopkg.in/urfave/cli.v1"
 )
 
-// OntologyFlags returns the flag slice with all the cli based command line
-// arguments needed for the ontology loader
+// OntologyFlags returns a cli.flag slice to use in the command
+// line arguments of the ontology loader
 func OntologyFlags() []cli.Flag {
 	return append(
 		[]cli.Flag{
