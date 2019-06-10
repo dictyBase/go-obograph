@@ -74,6 +74,21 @@ func (d *Database) Get(query string) (*Result, error) {
 	return &Result{cursor: c}, nil
 }
 
+// FindOrCreateCollection finds or creates a collection in the database. The
+// method is expected to be called by the user who has privileges to create the
+// collection
+func (d *Database) FindOrCreateCollection(name string, opt *driver.CreateCollectionOptions) (driver.Collection, error) {
+	var c driver.Collection
+	ok, err := d.dbh.CollectionExists(context.Background(), name)
+	if err != nil {
+		return c, fmt.Errorf("unable to check for collection %s", name)
+	}
+	if ok {
+		return d.dbh.Collection(context.Background(), name)
+	}
+	return d.dbh.CreateCollection(context.TODO(), name, opt)
+}
+
 // Collection returns collection attached to current database
 func (d *Database) Collection(name string) (driver.Collection, error) {
 	var c driver.Collection
