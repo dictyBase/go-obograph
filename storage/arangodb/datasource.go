@@ -63,15 +63,15 @@ func NewDataSource(connP *ConnectParams, collP *CollectionParams) (storage.DataS
 	if err != nil {
 		return ds, err
 	}
-	termc, err := db.Collection(collP.Term)
+	termc, err := db.FindOrCreateCollection(collP.Term)
 	if err != nil {
 		return ds, err
 	}
-	relc, err := db.Collection(collP.Relationship)
+	relc, err := db.FindOrCreateCollection(collP.Relationship)
 	if err != nil {
 		return ds, err
 	}
-	graphc, err := db.Collection(collP.GraphInfo)
+	graphc, err := db.FindOrCreateCollection(collP.GraphInfo)
 	if err != nil {
 		return ds, err
 	}
