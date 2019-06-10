@@ -63,15 +63,18 @@ func NewDataSource(connP *ConnectParams, collP *CollectionParams) (storage.DataS
 	if err != nil {
 		return ds, err
 	}
-	termc, err := db.FindOrCreateCollection(collP.Term)
+	termc, err := db.FindOrCreateCollection(collP.Term, &driver.CreateCollectionOptions{})
 	if err != nil {
 		return ds, err
 	}
-	relc, err := db.FindOrCreateCollection(collP.Relationship)
+	relc, err := db.FindOrCreateCollection(
+		collP.Relationship,
+		&driver.CreateCollectionOptions{Type: driver.CollectionTypeEdge},
+	)
 	if err != nil {
 		return ds, err
 	}
-	graphc, err := db.FindOrCreateCollection(collP.GraphInfo)
+	graphc, err := db.FindOrCreateCollection(collP.GraphInfo, &driver.CreateCollectionOptions{})
 	if err != nil {
 		return ds, err
 	}
