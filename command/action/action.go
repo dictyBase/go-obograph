@@ -2,7 +2,6 @@ package action
 
 import (
 	"fmt"
-	"net/http"
 	"os"
 	"strconv"
 
@@ -15,14 +14,15 @@ import (
 // LoadOntologies load ontologies into arangodb
 func LoadOntologies(c *cli.Context) error {
 	for _, v := range c.StringSlice("obojson") {
-		r, err := http.Get(v)
+		r, err := os.Open(v)
 		if err != nil {
 			return cli.NewExitError(
-				fmt.Sprintf("error in retrieving ontology %s %s", v, err),
+				fmt.Sprintf("error in opening file %s %s", v, err),
 				2,
 			)
 		}
-		g, err := graph.BuildGraph(r.Body)
+		defer r.Close()
+		g, err := graph.BuildGraph(r)
 		if err != nil {
 			return cli.NewExitError(
 				fmt.Sprintf("error in building graph from %s %s", v, err),
