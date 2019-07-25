@@ -13,6 +13,26 @@ import (
 
 // LoadOntologies load ontologies into arangodb
 func LoadOntologies(c *cli.Context) error {
+	arPort, _ := strconv.Atoi(c.String("arangodb-port"))
+	cp := &araobo.ConnectParams{
+		User:     c.String("arangodb-user"),
+		Pass:     c.String("arangodb-pass"),
+		Host:     c.String("arangodb-host"),
+		Database: c.String("arangodb-database"),
+		Port:     arPort,
+		Istls:    c.Bool("is-secure"),
+	}
+	clp := &araobo.CollectionParams{
+		Term:         c.String("term-collection"),
+		Relationship: c.String("rel-collection"),
+		GraphInfo:    c.String("cv-collection"),
+		OboGraph:     c.String("obograph"),
+	}
+	ds, err := araobo.NewDataSource(cp, clp)
+	if err != nil {
+		return cli.NewExitError(err.Error(), 2)
+	}
+	logger := getLogger(c)
 	for _, v := range c.StringSlice("obojson") {
 		r, err := os.Open(v)
 		if err != nil {
@@ -29,26 +49,6 @@ func LoadOntologies(c *cli.Context) error {
 				2,
 			)
 		}
-		arPort, _ := strconv.Atoi(c.String("arangodb-port"))
-		cp := &araobo.ConnectParams{
-			User:     c.String("arangodb-user"),
-			Pass:     c.String("arangodb-pass"),
-			Host:     c.String("arangodb-host"),
-			Database: c.String("arangodb-database"),
-			Port:     arPort,
-			Istls:    c.Bool("is-secure"),
-		}
-		clp := &araobo.CollectionParams{
-			Term:         c.String("term-collection"),
-			Relationship: c.String("rel-collection"),
-			GraphInfo:    c.String("cv-collection"),
-			OboGraph:     c.String("obograph"),
-		}
-		ds, err := araobo.NewDataSource(cp, clp)
-		if err != nil {
-			return cli.NewExitError(err.Error(), 2)
-		}
-		logger := getLogger(c)
 		if !ds.ExistsOboGraph(g) {
 			logger.Infof("obograph %s does not exist, have to be loaded", v)
 			err := ds.SaveOboGraphInfo(g)
@@ -74,6 +74,7 @@ func LoadOntologies(c *cli.Context) error {
 				)
 			}
 			logger.Infof("saved %d relationships", nr)
+			continue
 		}
 	}
 	return nil
