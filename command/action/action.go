@@ -76,6 +76,29 @@ func LoadOntologies(c *cli.Context) error {
 			logger.Infof("saved %d relationships", nr)
 			continue
 		}
+		logger.Infof("obograph %s exist, have to be updated", v)
+		if err := ds.UpdateOboGraphInfo(g); err != nil {
+			return cli.NewExitError(
+				fmt.Sprintf("error in updating graph information %s", err),
+				2,
+			)
+		}
+		it, ut, err := ds.SaveOrUpdateTerms(g)
+		if err != nil {
+			return cli.NewExitError(
+				fmt.Sprintf("error in updating terms %s", err),
+				2,
+			)
+		}
+		logger.Infof("saved: %d and updated: %d terms", it, ut)
+		ur, err := ds.SaveNewRelationships(g)
+		if err != nil {
+			return cli.NewExitError(
+				fmt.Sprintf("error in saving relationships %s", err),
+				2,
+			)
+		}
+		logger.Infof("updated %d relationships", ur)
 	}
 	return nil
 }
