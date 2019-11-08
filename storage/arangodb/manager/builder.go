@@ -904,7 +904,6 @@ func (f AqlFunction) Generate() string {
 		}
 		if aux != "" {
 			ParamList = append(ParamList, aux)
-			aux = ""
 		}
 	}
 
