@@ -3,6 +3,7 @@ package arangodb
 import (
 	"context"
 	"fmt"
+	"log"
 
 	"gopkg.in/go-playground/validator.v9"
 
@@ -216,7 +217,11 @@ func (a *arangoSource) SaveOrUpdateTerms(g graph.OboGraph) (int, int, error) {
 	if err != nil {
 		return icount, ucount, err
 	}
-	defer tmpColl.Remove(nil)
+	defer func() {
+		if err := tmpColl.Remove(nil); err != nil {
+			log.Printf("error in removing tmp collection %s", err)
+		}
+	}()
 	var dbterms []*dbTerm
 	for _, t := range g.Terms() {
 		dbterms = append(dbterms, a.todbTerm(id, t))
@@ -271,7 +276,11 @@ func (a *arangoSource) SaveNewRelationships(g graph.OboGraph) (int, error) {
 	if err != nil {
 		return ncount, err
 	}
-	defer tmpColl.Remove(nil)
+	defer func() {
+		if err := tmpColl.Remove(nil); err != nil {
+			log.Printf("error in removing tmp collection %s", err)
+		}
+	}()
 	var dbrs []*dbRelationship
 	for _, r := range g.Relationships() {
 		dbrel, err := a.todbRelationhip(r)

@@ -140,8 +140,6 @@ func (aqf aqlFor) Generate() string {
 		return code
 	}
 
-	code += "FOR " + aqf.v + " IN "
-
 	switch aqf.in.(type) {
 	case string:
 		code += aqf.in.(string)
@@ -152,9 +150,8 @@ func (aqf aqlFor) Generate() string {
 	case List:
 		code += aqf.in.(List).String()
 	default:
-		return code
+		code += "FOR " + aqf.v + " IN "
 	}
-
 	return code
 }
 
