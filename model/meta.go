@@ -116,5 +116,4 @@ func (m *Meta) Namespace() string {
 		}
 	}
 	return ""
-
 }

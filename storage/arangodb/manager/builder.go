@@ -643,7 +643,6 @@ func (aq *AqlStruct) Let(v string, i interface{}) *AqlStruct {
 	let.Exp = i
 	aq.lines = append(aq.lines, let)
 	return aq
-
 }
 
 type AqlLet struct {
