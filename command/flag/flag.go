@@ -2,7 +2,7 @@ package flag
 
 import (
 	arangoflag "github.com/dictyBase/arangomanager/command/flag"
-	cli "gopkg.in/urfave/cli.v1"
+	"github.com/urfave/cli"
 )
 
 // OntologyFlags returns a cli.flag slice to use in the command

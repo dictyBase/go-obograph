@@ -3,7 +3,7 @@ package validate
 import (
 	"fmt"
 
-	cli "gopkg.in/urfave/cli.v1"
+	"github.com/urfave/cli"
 )
 
 // OntologyArgs validates the command line arguments
