@@ -445,41 +445,29 @@ func (a *arangoSource) getDocId(nid graph.NodeID) (string, error) {
 }
 
 func (a *arangoSource) graphDocId(g graph.OboGraph) (string, error) {
-	var id string
-	query := manager.NewAqlStruct().
-		For("d", a.graphc.Name()).
-		Filter("d", manager.Fil("id", "eq", g.ID()), true).
-		Return("d._id")
-	res, err := a.database.Get(query.Generate())
-	if err != nil {
-		return id, err
-	}
-	if res.IsEmpty() {
-		return id, fmt.Errorf("graph id %s is absent from database", g.ID())
-	}
-	err = res.Read(&id)
-	if err != nil {
-		return id, err
-	}
-	return id, err
+	return a.graphDocQuery(g, "d._id")
 }
 
 func (a *arangoSource) graphDocKey(g graph.OboGraph) (string, error) {
-	var key string
+	return a.graphDocQuery(g, "d._key")
+}
+
+func (a *arangoSource) graphDocQuery(g graph.OboGraph, str string) (string, error) {
+	var ret string
 	query := manager.NewAqlStruct().
 		For("d", a.graphc.Name()).
 		Filter("d", manager.Fil("id", "eq", g.ID()), true).
-		Return("d._key")
+		Return(str)
 	res, err := a.database.Get(query.Generate())
 	if err != nil {
-		return key, err
+		return ret, err
 	}
 	if res.IsEmpty() {
-		return key, fmt.Errorf("graph id %s is absent from database", g.ID())
+		return ret, fmt.Errorf("graph id %s is absent from database", g.ID())
 	}
-	err = res.Read(&key)
+	err = res.Read(&ret)
 	if err != nil {
-		return key, err
+		return ret, err
 	}
-	return key, err
+	return ret, err
 }
