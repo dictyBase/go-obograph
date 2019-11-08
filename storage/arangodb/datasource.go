@@ -13,8 +13,6 @@ import (
 	"github.com/dictyBase/go-obograph/storage/arangodb/manager"
 )
 
-var sMap map[graph.NodeID]string = make(map[graph.NodeID]string)
-var pMap map[graph.NodeID]string = make(map[graph.NodeID]string)
 var oMap map[graph.NodeID]string = make(map[graph.NodeID]string)
 
 // ConnectParams are the parameters required for connecting to arangodb

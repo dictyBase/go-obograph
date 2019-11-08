@@ -347,13 +347,3 @@ func (g *graph) getTerms(id NodeID, edges map[NodeID]map[NodeID]Relationship) []
 	}
 	return t
 }
-
-func termFilter(terms []Term, fn func(Term) bool) []Term {
-	var termf []Term
-	for _, t := range terms {
-		if fn(t) {
-			termf = append(termf, t)
-		}
-	}
-	return termf
-}
