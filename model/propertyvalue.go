@@ -46,7 +46,6 @@ type Definition struct {
 // NewDefinition returns a new Definition
 func NewDefinition(val string, refs []string) *Definition {
 	return &Definition{&PropertyValue{val: val, refs: refs}}
-
 }
 
 // Synonym represent an alternate term for the node
