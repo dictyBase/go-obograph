@@ -77,10 +77,7 @@ func NewSynonym(prd, val string) *Synonym {
 
 // IsExact is a convenience method to check for EXACT scope
 func (s *Synonym) IsExact() bool {
-	if s.Pred() == "hasExactSynonym" {
-		return true
-	}
-	return false
+	return s.Pred() == "hasExactSynonym"
 }
 
 // Scope returns OBO-style scope of synonym

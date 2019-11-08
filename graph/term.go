@@ -71,10 +71,7 @@ func (n *node) IsDeprecated() bool {
 
 // HasMeta check for presence of any metadata
 func (n *node) HasMeta() bool {
-	if n.meta != nil {
-		return true
-	}
-	return false
+	return n.meta != nil
 }
 
 // ID is the term's unique identifier
