@@ -363,20 +363,14 @@ func (aqf AqlFilter) Generate() string {
 		}
 	}
 
-	if len(fil) > 1 {
-		sfil = strings.Join(fil, logic)
-	} else {
-		if len(fil) == 1 {
-			sfil = fil[0]
-		}
+	sfil = strings.Join(fil, logic)
+	if len(fil) == 1 {
+		sfil = fil[0]
 	}
 
-	if len(fun) > 1 {
-		sfun = strings.Join(fun, logic)
-	} else {
-		if len(fun) == 1 {
-			sfun = fun[0]
-		}
+	sfun = strings.Join(fun, logic)
+	if len(fun) == 1 {
+		sfun = fun[0]
 	}
 
 	if sfil != "" {
