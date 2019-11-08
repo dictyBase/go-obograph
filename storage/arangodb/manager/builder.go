@@ -108,7 +108,6 @@ type AqlStruct struct {
 	lines []AqlStructer
 	// number of loops and vars
 	nlopp uint
-	vars  []string
 	err   bool
 }
 
@@ -130,20 +129,6 @@ func (aq *AqlStruct) Generate() string {
 func NewAqlStruct() *AqlStruct {
 	var aq AqlStruct
 	return &aq
-}
-
-// Returns sub struct with same var context
-func (aq *AqlStruct) subStruct() *AqlStruct {
-	var substruct AqlStruct
-	if len(aq.vars) > 0 {
-		for _, v := range aq.vars {
-			substruct.vars = append(substruct.vars, v)
-		}
-		return &substruct
-	} else {
-		// fatal error
-		panic("getting substruct from empty struct")
-	}
 }
 
 // FOR var IN [] //
