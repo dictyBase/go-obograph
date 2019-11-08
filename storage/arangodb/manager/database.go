@@ -112,7 +112,7 @@ func (d *Database) CreateCollection(name string, opt *driver.CreateCollectionOpt
 	if ok {
 		return c, fmt.Errorf("collection %s exists", name)
 	}
-	return d.dbh.CreateCollection(nil, name, opt)
+	return d.dbh.CreateCollection(context.Background(), name, opt)
 }
 
 // FindOrCreateGraph finds or creates a named graph in the database
