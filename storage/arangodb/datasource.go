@@ -218,7 +218,7 @@ func (a *arangoSource) SaveOrUpdateTerms(g graph.OboGraph) (int, int, error) {
 		return icount, ucount, err
 	}
 	defer func() {
-		if err := tmpColl.Remove(nil); err != nil {
+		if err := tmpColl.Remove(context.Background()); err != nil {
 			log.Printf("error in removing tmp collection %s", err)
 		}
 	}()
@@ -277,7 +277,7 @@ func (a *arangoSource) SaveNewRelationships(g graph.OboGraph) (int, error) {
 		return ncount, err
 	}
 	defer func() {
-		if err := tmpColl.Remove(nil); err != nil {
+		if err := tmpColl.Remove(context.Background()); err != nil {
 			log.Printf("error in removing tmp collection %s", err)
 		}
 	}()
