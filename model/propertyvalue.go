@@ -89,15 +89,10 @@ func (s *Synonym) Scope() string {
 	switch s.Pred() {
 	case "hasExactSynonym":
 		scope = "EXACT"
-		break
 	case "hasNarrowSynonym":
 		scope = "NARROW"
-		break
 	case "hasBroadSynonym":
 		scope = "BROAD"
-		break
-	default:
-		break
 	}
 	return scope
 }
