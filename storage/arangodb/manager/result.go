@@ -22,7 +22,7 @@ func (r *Result) IsEmpty() bool {
 
 // Read read the row of data to i interface
 func (r *Result) Read(i interface{}) error {
-	meta, err := r.cursor.ReadDocument(nil, i)
+	meta, err := r.cursor.ReadDocument(context.Background(), i)
 	if err != nil {
 		return fmt.Errorf("error in reading document %s", err)
 	}
