@@ -10,6 +10,10 @@ import (
 	"testing"
 )
 
+const (
+	SEQ = "sequence"
+)
+
 func getReader() (io.Reader, error) {
 	buff := bytes.NewBuffer(make([]byte, 0))
 	dir, err := os.Getwd()
@@ -46,7 +50,7 @@ func TestGraphProperties(t *testing.T) {
 	if len(m.BasicPropertyValues()) != 5 {
 		t.Fatalf("expected %d basic properties does not match %d", 5, len(m.BasicPropertyValues()))
 	}
-	if m.Namespace() != "sequence" {
+	if m.Namespace() != SEQ {
 		t.Fatalf("expected namespace sequence does not match %s", m.Namespace())
 	}
 	clst := g.TermsByType("CLASS")
@@ -100,10 +104,10 @@ func TestGraphClassTerm(t *testing.T) {
 	if len(p) < 1 {
 		t.Fatal("expected basic propertyvalue metadata is absent")
 	}
-	if p[0].Value() != "sequence" {
+	if p[0].Value() != SEQ {
 		t.Fatalf("expected basic propertyvalue of sequence does not match %s", p[0].Value())
 	}
-	if cht.Meta().Namespace() != "sequence" {
+	if cht.Meta().Namespace() != SEQ {
 		t.Fatalf("expected namespace of sequence does not match %s", cht.Meta().Namespace())
 	}
 	cm := cht.Meta().Comments()
@@ -176,10 +180,10 @@ func TestGraphPropertyTerm(t *testing.T) {
 	if len(p) < 1 {
 		t.Fatal("expected basic propertyvalue metadata is absent")
 	}
-	if p[0].Value() != "sequence" {
+	if p[0].Value() != SEQ {
 		t.Fatalf("expected basic propertyvalue of sequence does not match %s", p[0].Value())
 	}
-	if dft.Meta().Namespace() != "sequence" {
+	if dft.Meta().Namespace() != SEQ {
 		t.Fatalf("expected namespace of sequence does not match %s", dft.Meta().Namespace())
 	}
 }
