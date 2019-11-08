@@ -128,24 +128,12 @@ func (g *graph) Relationships() []Relationship {
 
 // Children returns all children terms(depth one)
 func (g *graph) Children(id NodeID) []Term {
-	var t []Term
-	if _, ok := g.nodes[id]; ok {
-		for nid := range g.edgesDown[id] {
-			t = append(t, g.nodes[nid])
-		}
-	}
-	return t
+	return g.getTerms(id, g.edgesDown)
 }
 
 // Parents returns all parent terms(depth one)
 func (g *graph) Parents(id NodeID) []Term {
-	var t []Term
-	if _, ok := g.nodes[id]; ok {
-		for nid := range g.edgesUp[id] {
-			t = append(t, g.nodes[nid])
-		}
-	}
-	return t
+	return g.getTerms(id, g.edgesUp)
 }
 
 // DescendentsDFS returns all reachable(direct or indirect) children terms
@@ -348,6 +336,16 @@ func (g *graph) AddRelationshipWithID(obj, subj, pred NodeID) error {
 		g.edgesUp[subj] = map[NodeID]Relationship{obj: rel}
 	}
 	return nil
+}
+
+func (g *graph) getTerms(id NodeID, edges map[NodeID]map[NodeID]Relationship) []Term {
+	var t []Term
+	if _, ok := g.nodes[id]; ok {
+		for nid := range edges[id] {
+			t = append(t, g.nodes[nid])
+		}
+	}
+	return t
 }
 
 func termFilter(terms []Term, fn func(Term) bool) []Term {
