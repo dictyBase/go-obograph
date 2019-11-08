@@ -11,7 +11,6 @@ import (
 // Result is a cursor for single row of data
 type Result struct {
 	cursor driver.Cursor
-	ctx    context.Context
 	empty  bool
 }
 

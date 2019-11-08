@@ -106,9 +106,6 @@ type AqlStructer interface {
 // Basic Aql struct to build Aql Query
 type AqlStruct struct {
 	lines []AqlStructer
-	// number of loops and vars
-	nlopp uint
-	err   bool
 }
 
 //Generate Aql query string
