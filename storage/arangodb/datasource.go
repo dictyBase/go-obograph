@@ -434,20 +434,9 @@ func (a *arangoSource) todbRelationhip(r graph.Relationship) (*dbRelationship, e
 }
 
 func (a *arangoSource) getDocId(nid graph.NodeID) (string, error) {
-	var id string
-	query := manager.NewAqlStruct().
-		For("d", a.termc.Name()).
-		Filter("d", manager.Fil("id", "eq", string(nid)), true).
-		Return("d._id")
-	res, err := a.database.Get(query.Generate())
-	if err != nil {
-		return id, err
-	}
-	if res.IsEmpty() {
-		return id, fmt.Errorf("object %s is absent in database", nid)
-	}
-	err = res.Read(&id)
-	return id, err
+	return a.graphDocQuery(
+		fmt.Sprintf(getq, a.termc.Name(), string(nid), "d._id"),
+	)
 }
 
 func (a *arangoSource) graphDocId(g graph.OboGraph) (string, error) {
