@@ -3,6 +3,16 @@ package arangodb
 import "fmt"
 
 const (
+	getq = `
+		FOR d IN %s
+			FILTER d.id == "%s"
+			RETURN %s
+	`
+	getd = `
+		FOR d IN %s
+			FILTER d.id == "%s"
+			RETURN d
+	`
 	tinst = `
 		LET fcv = (
 			FOR cv IN %s
