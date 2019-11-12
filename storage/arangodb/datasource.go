@@ -465,6 +465,7 @@ func (a *arangoSource) graphDocQuery(g graph.OboGraph, str string) (string, erro
 		For("d", a.graphc.Name()).
 		Filter("d", manager.Fil("id", "eq", g.ID()), true).
 		Return(str)
+	fmt.Println(query.Generate())
 	res, err := a.database.Get(query.Generate())
 	if err != nil {
 		return ret, err
