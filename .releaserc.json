@@ -10,19 +10,7 @@
             {"type": "refactor", "release": "patch"}
         ]
     }],
-    ["@semantic-release/release-notes-generator", {
-        "presetConfig": {
-            "types": [
-                {"type": "feat", "section": "Features"},
-                {"type": "fix", "section": "Bug fixes"},
-                {"type": "chore", "section": "Misc. changes"},
-                {"type": "docs", "section": "Documentation"},
-                {"type": "style", "hidden": true},
-                {"type": "refactor", "section": "Code refactoring"},
-                {"type": "perf", "section": "Performance improvement"},
-                {"type": "test", "section": "Test"}
-            ]}
-    }],
+    "@semantic-release/release-notes-generator",
     "@semantic-release/github"
   ]
 }
