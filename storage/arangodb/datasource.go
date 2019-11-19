@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"log"
 
-	"gopkg.in/go-playground/validator.v9"
+	"github.com/go-playground/validator/v10"
 
 	driver "github.com/arangodb/go-driver"
 	"github.com/dictyBase/go-obograph/generate"
