@@ -2,9 +2,9 @@ module github.com/dictyBase/go-obograph
 
 require (
 	github.com/arangodb/go-driver v0.0.0-20191107140416-095263e288cd
-	github.com/dictyBase/arangomanager v0.1.2
+	github.com/dictyBase/arangomanager v0.2.0
 	github.com/fatih/structs v1.1.0
-	github.com/go-playground/validator/v10 v10.1.0
+	github.com/go-playground/validator/v10 v10.2.0
 	github.com/kr/pretty v0.1.0 // indirect
 	github.com/sirupsen/logrus v1.6.0
 	github.com/urfave/cli v1.22.4
