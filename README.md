@@ -1,7 +1,7 @@
 # go-obograph
 [![License](https://img.shields.io/badge/License-BSD%202--Clause-blue.svg)](LICENSE)  
 ![GitHub action](https://github.com/dictyBase/go-obograph/workflows/Continuous%20integration/badge.svg)
-[![GoDoc](https://godoc.org/github.com/dictyBase/go-obograph?status.svg)](https://godoc.org/github.com/dictyBase/go-obograph)
+[![GoDoc](https://pkg.go.dev/badge/dictyBase/go-obograph)](https://pkg.go.dev/dictyBase/go-obograph)
 [![codecov](https://codecov.io/gh/dictyBase/go-obograph/branch/develop/graph/badge.svg)](https://codecov.io/gh/dictyBase/arangomanager)   
 [![Maintainability](https://api.codeclimate.com/v1/badges/6f3e28561a7900c8d931/maintainability)](https://codeclimate.com/github/dictyBase/go-obograph/maintainability)
 ![Last commit](https://badgen.net/github/last-commit/dictyBase/go-obograph/develop)
