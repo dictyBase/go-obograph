@@ -8,7 +8,7 @@ import (
 	"github.com/dictyBase/go-obograph/graph"
 	araobo "github.com/dictyBase/go-obograph/storage/arangodb"
 	"github.com/sirupsen/logrus"
-	cli "gopkg.in/urfave/cli.v1"
+	"github.com/urfave/cli"
 )
 
 // LoadOntologies load ontologies into arangodb
