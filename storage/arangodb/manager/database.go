@@ -58,20 +58,19 @@ func (d *Database) Run(query string) (*Result, error) {
 	return d.Get(query)
 }
 
-// Get query the database to return single row of result
-func (d *Database) Get(query string) (*Result, error) {
-	// validate
+// GetRow query the database with bind parameters that is expected to return
+// single row of result
+func (d *Database) GetRow(query string, bindVars map[string]interface{}) (*Result, error) {
 	if err := d.dbh.ValidateQuery(context.Background(), query); err != nil {
 		return &Result{empty: true}, fmt.Errorf("error in validating the query %s", err)
 	}
-	c, err := d.dbh.Query(context.Background(), query, nil)
-	if err != nil {
-		if driver.IsNotFound(err) {
-			return &Result{empty: true}, nil
-		}
-		return &Result{empty: true}, fmt.Errorf("error in get query %s", err)
-	}
-	return &Result{cursor: c}, nil
+	c, err := d.dbh.Query(context.Background(), query, bindVars)
+	return d.getResult(c, err)
+}
+
+// Get query the database to return single row of result
+func (d *Database) Get(query string) (*Result, error) {
+	return d.GetRow(query, nil)
 }
 
 // FindOrCreateCollection finds or creates a collection in the database. The
@@ -135,4 +134,14 @@ func (d *Database) FindOrCreateGraph(name string, defs []driver.EdgeDefinition) 
 // Drop removes the database
 func (d *Database) Drop() error {
 	return d.dbh.Remove(context.Background())
+}
+
+func (d *Database) getResult(c driver.Cursor, err error) (*Result, error) {
+	if err != nil {
+		return &Result{empty: true}, fmt.Errorf("error in query %s", err)
+	}
+	if !c.HasMore() {
+		return &Result{empty: true}, nil
+	}
+	return &Result{cursor: c}, nil
 }
