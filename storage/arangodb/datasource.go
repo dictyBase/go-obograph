@@ -9,10 +9,10 @@ import (
 	"github.com/go-playground/validator/v10"
 
 	driver "github.com/arangodb/go-driver"
+	manager "github.com/dictyBase/arangomanager"
 	"github.com/dictyBase/go-obograph/generate"
 	"github.com/dictyBase/go-obograph/graph"
 	"github.com/dictyBase/go-obograph/storage"
-	"github.com/dictyBase/go-obograph/storage/arangodb/manager"
 )
 
 var oMap map[graph.NodeID]string = make(map[graph.NodeID]string)
@@ -49,17 +49,14 @@ func NewDataSource(connP *ConnectParams, collP *CollectionParams) (storage.DataS
 	if err := validate.Struct(collP); err != nil {
 		return ds, err
 	}
-	sess, err := manager.Connect(
-		connP.Host,
-		connP.User,
-		connP.Pass,
-		connP.Port,
-		connP.Istls,
-	)
-	if err != nil {
-		return ds, err
-	}
-	db, err := sess.DB(connP.Database)
+	sess, db, err := manager.NewSessionDb(&manager.ConnectParams{
+		User:     connP.User,
+		Pass:     connP.Pass,
+		Database: connP.Database,
+		Host:     connP.Host,
+		Port:     connP.Port,
+		Istls:    connP.Istls,
+	})
 	if err != nil {
 		return ds, err
 	}
@@ -80,13 +77,11 @@ func NewDataSource(connP *ConnectParams, collP *CollectionParams) (storage.DataS
 	}
 	obog, err := db.FindOrCreateGraph(
 		collP.OboGraph,
-		[]driver.EdgeDefinition{
-			driver.EdgeDefinition{
-				Collection: relc.Name(),
-				From:       []string{termc.Name()},
-				To:         []string{termc.Name()},
-			},
-		},
+		[]driver.EdgeDefinition{{
+			Collection: relc.Name(),
+			From:       []string{termc.Name()},
+			To:         []string{termc.Name()},
+		}},
 	)
 	if err != nil {
 		return ds, err
