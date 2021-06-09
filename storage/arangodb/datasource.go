@@ -241,14 +241,14 @@ func (a *arangoSource) SaveOrUpdateTerms(g graph.OboGraph) (int, int, error) {
 	if err := ru.Read(&ucount); err != nil {
 		return icount, ucount, fmt.Errorf("error in reading number of updates %s", err)
 	}
-
 	//insert new terms
-	ri, err := a.database.Run(termInsert(
-		g.ID(),
-		a.graphc.Name(),
-		a.termc.Name(),
-		tmpColl.Name(),
-	))
+	ri, err := a.database.DoRun(tinst, map[string]interface{}{
+		"graph_id":          g.ID(),
+		"term_collection":   a.termc.Name(),
+		"@graph_collection": a.graphc.Name(),
+		"@term_collection":  a.termc.Name(),
+		"@temp_collection":  tmpColl.Name(),
+	})
 	if err != nil {
 		return icount, ucount, fmt.Errorf("unable to run term insert query %s", err)
 	}
@@ -457,4 +457,18 @@ func (a *arangoSource) graphDocQuery(query string) (string, error) {
 	}
 	err = res.Read(&ret)
 	return ret, err
+}
+
+func (a *arangoSource) termUpdate(gname, gcoll, tcoll, temp string) string {
+	return fmt.Sprintf(
+		tupdt, gcoll, gname, tcoll,
+		temp, temp, tcoll, tcoll,
+	)
+}
+
+func (a *arangoSource) relInsert(gname, gcoll, tcoll, rcoll, graph, temp string) string {
+	return fmt.Sprintf(
+		rinst, gcoll, tcoll, gname, temp,
+		graph, temp, tcoll, rcoll,
+	)
 }
