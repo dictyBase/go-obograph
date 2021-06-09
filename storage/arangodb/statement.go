@@ -1,7 +1,5 @@
 package arangodb
 
-import "fmt"
-
 const (
 	getq = `
 		FOR d IN %s
@@ -15,24 +13,24 @@ const (
 	`
 	tinst = `
 		LET fcv = (
-			FOR cv IN %s
-				FILTER cv.id == "%s"
+			FOR cv IN @@graph_collection
+				FILTER cv.id == @graph_id
 				RETURN cv._id
 		)
 		LET existing = (
-				FOR cvt IN %s
+				FOR cvt IN @@term_collection
 					FILTER fcv[0] == cvt.graph_id
 					RETURN cvt.id
 		)
 		LET latest = (
-			FOR cvt IN %s
+			FOR cvt IN @@temp_collection
 				FILTER fcv[0] == cvt.graph_id
 				RETURN cvt.id
 		)
 		FOR diff IN MINUS(latest,existing)
-			FOR cvt IN %s
+			FOR cvt IN @@temp_collection
 				FILTER diff == cvt.id
-				INSERT UNSET(cvt,["_key","_id","_rev"]) IN %s
+				INSERT UNSET(cvt,["_key","_id","_rev"]) IN @term_collection
 				COLLECT WITH COUNT INTO c
 				RETURN c
 	`
@@ -96,25 +94,3 @@ const (
 		                    RETURN c
 		`
 )
-
-func termInsert(gname, gcoll, tcoll, temp string) string {
-	return fmt.Sprintf(
-		tinst,
-		gcoll, gname, tcoll, temp, temp, tcoll,
-	)
-}
-
-func termUpdate(gname, gcoll, tcoll, temp string) string {
-	return fmt.Sprintf(
-		tupdt,
-		gcoll, gname, tcoll, temp, temp, tcoll, tcoll,
-	)
-}
-
-func relInsert(gname, gcoll, tcoll, rcoll, graph, temp string) string {
-	return fmt.Sprintf(
-		rinst,
-		gcoll, tcoll, gname, temp,
-		graph, temp, tcoll, rcoll,
-	)
-}
