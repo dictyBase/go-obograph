@@ -229,12 +229,12 @@ func (a *arangoSource) SaveOrUpdateTerms(g graph.OboGraph) (int, int, error) {
 		return icount, ucount, err
 	}
 	// update terms
-	ru, err := a.database.Run(termUpdate(
-		g.ID(),
-		a.graphc.Name(),
-		a.termc.Name(),
-		tmpColl.Name(),
-	))
+	ru, err := a.database.DoRun(tupdt, map[string]interface{}{
+		"graph_id":          g.ID(),
+		"@graph_collection": a.graphc.Name(),
+		"@term_collection":  a.termc.Name(),
+		"@temp_collection":  tmpColl.Name(),
+	})
 	if err != nil {
 		return icount, ucount, fmt.Errorf("unable to run term update query %s", err)
 	}
@@ -244,7 +244,6 @@ func (a *arangoSource) SaveOrUpdateTerms(g graph.OboGraph) (int, int, error) {
 	//insert new terms
 	ri, err := a.database.DoRun(tinst, map[string]interface{}{
 		"graph_id":          g.ID(),
-		"term_collection":   a.termc.Name(),
 		"@graph_collection": a.graphc.Name(),
 		"@term_collection":  a.termc.Name(),
 		"@temp_collection":  tmpColl.Name(),
