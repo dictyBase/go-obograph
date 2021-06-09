@@ -66,22 +66,22 @@ const (
 				   RETURN c
 	`
 	rinst = `
-		FOR c IN %s
-		    FOR cvt IN %s
-		        FILTER c.id == "%s"
+		FOR c IN @@graph_collection
+		    FOR cvt IN @@term_collection
+		        FILTER c.id == @graph_id
 		        FILTER c._id == cvt.graph_id
 		        LET nch = MINUS (
-		            FOR v IN 1..1 OUTBOUND cvt %s
+		            FOR v IN 1..1 OUTBOUND cvt @@temp_collection
 		            OPTIONS { bfs: true, uniqueVertices: 'global' }
 		            RETURN v.id,
-		            FOR v IN 1..1 OUTBOUND cvt GRAPH "%s"
+		            FOR v IN 1..1 OUTBOUND cvt GRAPH @cvterm_graph
 		            OPTIONS { bfs: true, uniqueVertices: 'global' }
 		            RETURN v.id
 		        )
 		        FILTER LENGTH(nch) > 0
 				FOR n IN nch
-					FOR z IN %s
-		                FOR cvtn IN %s
+					FOR z IN @@temp_collection
+		                FOR cvtn IN @@term_collection
 		                    FILTER n == cvtn.id
 		                    FILTER cvtn._id == z._to
 		                    FILTER cvt._id == z._from
@@ -89,7 +89,7 @@ const (
 		                        _from: z._from,
 		                        _to: z._to,
 		                        predicate: z.predicate
-		                    } IN %s
+		                    } IN @@relationship_collection
 		                    COLLECT WITH COUNT INTO c
 		                    RETURN c
 		`
