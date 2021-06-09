@@ -1,14 +1,19 @@
 package arangodb
 
 const (
-	getq = `
-		FOR d IN %s
-			FILTER d.id == "%s"
-			RETURN %s
+	getkey = `
+		FOR d IN @@db_collection
+			FILTER d.id == @db_id
+			RETURN d._key
+	`
+	getid = `
+		FOR d IN @@db_collection
+			FILTER d.id == @db_id
+			RETURN d._id
 	`
 	getd = `
-		FOR d IN %s
-			FILTER d.id == "%s"
+		FOR d IN @@graph_collection
+			FILTER d.id == @graph_id
 			RETURN d
 	`
 	tinst = `
