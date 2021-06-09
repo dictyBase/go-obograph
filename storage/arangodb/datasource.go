@@ -118,9 +118,11 @@ func (a *arangoSource) SaveOboGraphInfo(g graph.OboGraph) error {
 
 // ExistOboGraph checks for existence of a particular OBO graph
 func (a *arangoSource) ExistsOboGraph(g graph.OboGraph) bool {
-	count, err := a.database.Count(
-		fmt.Sprintf(getd, a.graphc.Name(), g.ID()),
-	)
+	count, err := a.database.CountWithParams(getd,
+		map[string]interface{}{
+			"@graph_collection": a.graphc.Name(),
+			"graph_id":          g.ID(),
+		})
 	if err != nil {
 		return false
 	}
@@ -428,25 +430,34 @@ func (a *arangoSource) todbRelationhip(r graph.Relationship) (*dbRelationship, e
 
 func (a *arangoSource) getDocId(nid graph.NodeID) (string, error) {
 	return a.graphDocQuery(
-		fmt.Sprintf(getq, a.termc.Name(), string(nid), "d._id"),
-	)
+		getid,
+		map[string]interface{}{
+			"@db_collection": a.termc.Name(),
+			"db_id":          string(nid),
+		})
 }
 
 func (a *arangoSource) graphDocId(g graph.OboGraph) (string, error) {
 	return a.graphDocQuery(
-		fmt.Sprintf(getq, a.graphc.Name(), g.ID(), "d._id"),
-	)
+		getid,
+		map[string]interface{}{
+			"@db_collection": a.graphc.Name(),
+			"db_id":          g.ID(),
+		})
 }
 
 func (a *arangoSource) graphDocKey(g graph.OboGraph) (string, error) {
 	return a.graphDocQuery(
-		fmt.Sprintf(getq, a.graphc.Name(), g.ID(), "d._key"),
-	)
+		getkey,
+		map[string]interface{}{
+			"@db_collection": a.graphc.Name(),
+			"db_id":          g.ID(),
+		})
 }
 
-func (a *arangoSource) graphDocQuery(query string) (string, error) {
+func (a *arangoSource) graphDocQuery(query string, bindVars map[string]interface{}) (string, error) {
 	var ret string
-	res, err := a.database.Get(query)
+	res, err := a.database.GetRow(query, bindVars)
 	if err != nil {
 		return ret, err
 	}
