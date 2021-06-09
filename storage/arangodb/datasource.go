@@ -294,14 +294,14 @@ func (a *arangoSource) SaveNewRelationships(g graph.OboGraph) (int, error) {
 				tmpColl.Name(), err,
 			)
 	}
-	r, err := a.database.Run(relInsert(
-		g.ID(),
-		a.graphc.Name(),
-		a.termc.Name(),
-		a.relc.Name(),
-		a.obog.Name(),
-		tmpColl.Name(),
-	))
+	r, err := a.database.DoRun(rinst, map[string]interface{}{
+		"@relationship_collection": a.relc.Name(),
+		"@graph_collection":        a.graphc.Name(),
+		"@term_collection":         a.termc.Name(),
+		"@temp_collection":         tmpColl.Name(),
+		"cvterm_graph":             a.obog.Name(),
+		"graph_id":                 g.ID(),
+	})
 	if err != nil {
 		return ncount, fmt.Errorf("unable to run new relationships insert query %s", err)
 	}
@@ -456,18 +456,4 @@ func (a *arangoSource) graphDocQuery(query string) (string, error) {
 	}
 	err = res.Read(&ret)
 	return ret, err
-}
-
-func (a *arangoSource) termUpdate(gname, gcoll, tcoll, temp string) string {
-	return fmt.Sprintf(
-		tupdt, gcoll, gname, tcoll,
-		temp, temp, tcoll, tcoll,
-	)
-}
-
-func (a *arangoSource) relInsert(gname, gcoll, tcoll, rcoll, graph, temp string) string {
-	return fmt.Sprintf(
-		rinst, gcoll, tcoll, gname, temp,
-		graph, temp, tcoll, rcoll,
-	)
 }
