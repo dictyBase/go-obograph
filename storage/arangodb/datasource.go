@@ -15,8 +15,6 @@ import (
 	"github.com/dictyBase/go-obograph/storage"
 )
 
-var oMap map[graph.NodeID]string = make(map[graph.NodeID]string)
-
 // ConnectParams are the parameters required for connecting to arangodb
 type ConnectParams struct {
 	User     string `validate:"required"`
@@ -393,6 +391,7 @@ func (a *arangoSource) todbTerm(id string, t graph.Term) *dbTerm {
 }
 
 func (a *arangoSource) todbRelationhip(r graph.Relationship) (*dbRelationship, error) {
+	oMap := make(map[graph.NodeID]string)
 	dbr := &dbRelationship{}
 	if v, ok := oMap[r.Object()]; ok {
 		dbr.From = v
