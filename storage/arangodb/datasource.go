@@ -203,10 +203,7 @@ func (a *arangoSource) SaveOrUpdateTerms(g graph.OboGraph) (*storage.Stats, erro
 	if err != nil {
 		return stats, err
 	}
-	tmpColl, err := a.database.CreateCollection(
-		generate.RandString(13),
-		&driver.CreateCollectionOptions{},
-	)
+	tmpColl, err := a.loadTermsinTemp(id, g)
 	if err != nil {
 		return stats, err
 	}
@@ -215,48 +212,26 @@ func (a *arangoSource) SaveOrUpdateTerms(g graph.OboGraph) (*storage.Stats, erro
 			log.Printf("error in removing tmp collection %s", err)
 		}
 	}()
-	var dbterms []*dbTerm
-	for _, t := range g.Terms() {
-		dbterms = append(dbterms, a.todbTerm(id, t))
-	}
-	_, err = tmpColl.ImportDocuments(
-		context.Background(),
-		dbterms,
-		&driver.ImportDocumentOptions{Complete: true},
-	)
+	return a.manageTerms(g, tmpColl)
+}
+
+func (a *arangoSource) manageTerms(g graph.OboGraph, tmpColl driver.Collection) (*storage.Stats, error) {
+	stats := new(storage.Stats)
+	ucount, err := a.updateTerms(g, tmpColl)
 	if err != nil {
 		return stats, err
 	}
-	// update terms
-	ru, err := a.database.DoRun(tupdt, map[string]interface{}{
-		"graph_id":          g.ID(),
-		"@graph_collection": a.graphc.Name(),
-		"@term_collection":  a.termc.Name(),
-		"@temp_collection":  tmpColl.Name(),
-	})
+	icount, err := a.insertTerms(g, tmpColl)
 	if err != nil {
-		return stats, fmt.Errorf("unable to run term update query %s", err)
+		return stats, err
 	}
-	var ucount int
-	if err := ru.Read(&ucount); err != nil {
-		return stats, fmt.Errorf("error in reading number of updates %s", err)
-	}
-	//insert new terms
-	ri, err := a.database.DoRun(tinst, map[string]interface{}{
-		"graph_id":          g.ID(),
-		"@graph_collection": a.graphc.Name(),
-		"@term_collection":  a.termc.Name(),
-		"@temp_collection":  tmpColl.Name(),
-	})
+	ocount, err := a.obsoleteTerms(g, tmpColl)
 	if err != nil {
-		return stats, fmt.Errorf("unable to run term insert query %s", err)
-	}
-	var icount int
-	if err := ri.Read(&icount); err != nil {
-		return stats, fmt.Errorf("error in reading number of inserts %s", err)
+		return stats, err
 	}
 	stats.Created = icount
 	stats.Updated = ucount
+	stats.Deleted = ocount
 	return stats, nil
 }
 
@@ -469,4 +444,75 @@ func (a *arangoSource) graphDocQuery(query string, bindVars map[string]interface
 	}
 	err = res.Read(&ret)
 	return ret, err
+}
+
+func (a *arangoSource) insertTerms(g graph.OboGraph, tmpColl driver.Collection) (int, error) {
+	var icount int
+	ri, err := a.database.DoRun(tinst, map[string]interface{}{
+		"graph_id":          g.ID(),
+		"@graph_collection": a.graphc.Name(),
+		"@term_collection":  a.termc.Name(),
+		"@temp_collection":  tmpColl.Name(),
+	})
+	if err != nil {
+		return icount, fmt.Errorf("unable to run term insert query %s", err)
+	}
+	if err := ri.Read(&icount); err != nil {
+		return icount, fmt.Errorf("error in reading number of inserts %s", err)
+	}
+	return icount, nil
+}
+
+func (a *arangoSource) updateTerms(g graph.OboGraph, tmpColl driver.Collection) (int, error) {
+	var ucount int
+	ru, err := a.database.DoRun(tupdt, map[string]interface{}{
+		"graph_id":          g.ID(),
+		"@graph_collection": a.graphc.Name(),
+		"@term_collection":  a.termc.Name(),
+		"@temp_collection":  tmpColl.Name(),
+	})
+	if err != nil {
+		return ucount, fmt.Errorf("unable to run term update query %s", err)
+	}
+	if err := ru.Read(&ucount); err != nil {
+		return ucount, fmt.Errorf("error in reading number of updates %s", err)
+	}
+	return ucount, nil
+}
+
+func (a *arangoSource) obsoleteTerms(g graph.OboGraph, tmpColl driver.Collection) (int, error) {
+	var ocount int
+	ru, err := a.database.DoRun(tdelt, map[string]interface{}{
+		"graph_id":          g.ID(),
+		"@graph_collection": a.graphc.Name(),
+		"@term_collection":  a.termc.Name(),
+		"@temp_collection":  tmpColl.Name(),
+	})
+	if err != nil {
+		return ocount, fmt.Errorf("unable to run term obsolete query %s", err)
+	}
+	if err := ru.Read(&ocount); err != nil {
+		return ocount, fmt.Errorf("error in reading number of obsoletion %s", err)
+	}
+	return ocount, nil
+}
+
+func (a *arangoSource) loadTermsinTemp(id string, g graph.OboGraph) (driver.Collection, error) {
+	tmpColl, err := a.database.CreateCollection(
+		generate.RandString(13),
+		&driver.CreateCollectionOptions{},
+	)
+	if err != nil {
+		return tmpColl, err
+	}
+	var dbterms []*dbTerm
+	for _, t := range g.Terms() {
+		dbterms = append(dbterms, a.todbTerm(id, t))
+	}
+	_, err = tmpColl.ImportDocuments(
+		context.Background(),
+		dbterms,
+		&driver.ImportDocumentOptions{Complete: true},
+	)
+	return tmpColl, err
 }
