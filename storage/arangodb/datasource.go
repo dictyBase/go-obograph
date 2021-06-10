@@ -197,19 +197,18 @@ func (a *arangoSource) UpdateOboGraphInfo(g graph.OboGraph) error {
 
 // SaveorUpdateTerms insert and update terms in the storage
 // and returns no of new and updated terms
-func (a *arangoSource) SaveOrUpdateTerms(g graph.OboGraph) (int, int, error) {
-	ucount := 0
-	icount := 0
+func (a *arangoSource) SaveOrUpdateTerms(g graph.OboGraph) (*storage.Stats, error) {
+	stats := new(storage.Stats)
 	id, err := a.graphDocId(g)
 	if err != nil {
-		return icount, ucount, err
+		return stats, err
 	}
 	tmpColl, err := a.database.CreateCollection(
 		generate.RandString(13),
 		&driver.CreateCollectionOptions{},
 	)
 	if err != nil {
-		return icount, ucount, err
+		return stats, err
 	}
 	defer func() {
 		if err := tmpColl.Remove(context.Background()); err != nil {
@@ -226,7 +225,7 @@ func (a *arangoSource) SaveOrUpdateTerms(g graph.OboGraph) (int, int, error) {
 		&driver.ImportDocumentOptions{Complete: true},
 	)
 	if err != nil {
-		return icount, ucount, err
+		return stats, err
 	}
 	// update terms
 	ru, err := a.database.DoRun(tupdt, map[string]interface{}{
@@ -236,10 +235,11 @@ func (a *arangoSource) SaveOrUpdateTerms(g graph.OboGraph) (int, int, error) {
 		"@temp_collection":  tmpColl.Name(),
 	})
 	if err != nil {
-		return icount, ucount, fmt.Errorf("unable to run term update query %s", err)
+		return stats, fmt.Errorf("unable to run term update query %s", err)
 	}
+	var ucount int
 	if err := ru.Read(&ucount); err != nil {
-		return icount, ucount, fmt.Errorf("error in reading number of updates %s", err)
+		return stats, fmt.Errorf("error in reading number of updates %s", err)
 	}
 	//insert new terms
 	ri, err := a.database.DoRun(tinst, map[string]interface{}{
@@ -249,12 +249,15 @@ func (a *arangoSource) SaveOrUpdateTerms(g graph.OboGraph) (int, int, error) {
 		"@temp_collection":  tmpColl.Name(),
 	})
 	if err != nil {
-		return icount, ucount, fmt.Errorf("unable to run term insert query %s", err)
+		return stats, fmt.Errorf("unable to run term insert query %s", err)
 	}
+	var icount int
 	if err := ri.Read(&icount); err != nil {
-		return icount, ucount, fmt.Errorf("error in reading number of inserts %s", err)
+		return stats, fmt.Errorf("error in reading number of inserts %s", err)
 	}
-	return icount, ucount, nil
+	stats.Created = icount
+	stats.Updated = ucount
+	return stats, nil
 }
 
 // SaveNewRelationships saves only the new relationships that are absent in the storage
