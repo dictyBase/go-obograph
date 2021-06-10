@@ -70,6 +70,33 @@ const (
 				   COLLECT WITH COUNT INTO c
 				   RETURN c
 	`
+	tdelt = `
+		LET fcv = (
+			FOR cv IN @@graph_collection
+				FILTER cv.id == @graph_id
+				RETURN cv._id
+		)
+		LET existing = (
+				FOR cvt IN @@term_collection
+					FILTER fcv[0] == cvt.graph_id
+					RETURN cvt.id
+		)
+		LET latest = (
+			FOR cvt IN @@temp_collection
+				FILTER fcv[0] == cvt.graph_id
+				RETURN cvt.id
+		)
+		FOR diff in MINUS(existing,latest)
+			FOR ecvt in @@term_collection
+				FILTER ecvt.graph_id == fcv[0]
+				FILTER diff == ecvt.id
+				UPDATE {
+					 _key: ecvt._key,
+					 deprecated: true
+				} IN @@term_collection
+				COLLECT WITH COUNT INTO c
+				RETURN c
+	`
 	rinst = `
 		FOR c IN @@graph_collection
 		    FOR cvt IN @@term_collection
