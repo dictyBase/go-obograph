@@ -83,14 +83,17 @@ func LoadOntologies(c *cli.Context) error {
 				2,
 			)
 		}
-		it, ut, err := ds.SaveOrUpdateTerms(g)
+		stats, err := ds.SaveOrUpdateTerms(g)
 		if err != nil {
 			return cli.NewExitError(
 				fmt.Sprintf("error in updating terms %s", err),
 				2,
 			)
 		}
-		logger.Infof("saved: %d and updated: %d terms", it, ut)
+		logger.Infof(
+			"saved: %d and updated: %d obsoleted: %d terms",
+			stats.Created, stats.Updated, stats.Deleted,
+		)
 		ur, err := ds.SaveNewRelationships(g)
 		if err != nil {
 			return cli.NewExitError(
