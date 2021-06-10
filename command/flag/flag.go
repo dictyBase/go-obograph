@@ -31,8 +31,9 @@ func OntologyFlags() []cli.Flag {
 				Value: "obograph",
 			},
 			cli.StringSliceFlag{
-				Name:  "obojson,j",
-				Usage: "input ontology files in obograph json format",
+				Name:     "obojson,j",
+				Usage:    "input ontology files in obograph json format",
+				Required: true,
 			},
 		},
 		arangoflag.ArangodbFlags()...,
