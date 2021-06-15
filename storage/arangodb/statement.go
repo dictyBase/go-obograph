@@ -55,7 +55,7 @@ const (
 				FILTER fcv[0] == cvt.graph_id
 				RETURN cvt.id
 		)
-		FOR ins in INTERSECTION(latest,existing)
+		FOR ins IN INTERSECTION(latest,existing)
 			FOR lcvt in @@temp_collection
 				FOR ecvt in @@term_collection
 					FILTER lcvt.graph_id == fcv[0]
@@ -86,7 +86,7 @@ const (
 				FILTER fcv[0] == cvt.graph_id
 				RETURN cvt.id
 		)
-		FOR diff in MINUS(existing,latest)
+		FOR diff IN MINUS(existing,latest)
 			FOR ecvt in @@term_collection
 				FILTER ecvt.graph_id == fcv[0]
 				FILTER diff == ecvt.id
