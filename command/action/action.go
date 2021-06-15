@@ -91,7 +91,7 @@ func LoadOntologies(c *cli.Context) error {
 			)
 		}
 		logger.Infof(
-			"saved:>>>%d terms updated:>>>%d terms obsoleted:>>>%d terms",
+			"saved::%d terms updated::%d terms obsoleted::%d terms",
 			stats.Created, stats.Updated, stats.Deleted,
 		)
 		ur, err := ds.SaveNewRelationships(g)
