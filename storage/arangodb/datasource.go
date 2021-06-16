@@ -446,7 +446,7 @@ func (a *arangoSource) graphDocQuery(query string, bindVars map[string]interface
 	return ret, err
 }
 
-func (a *arangoSource) editTerms(query string, g graph.OboGraph, tmpColl driver.Collection) (int, error) {
+func (a *arangoSource) editTerms(query string, g graph.OboGraph, tmpColl driver.AccessTarget) (int, error) {
 	var ocount int
 	ru, err := a.database.DoRun(query, map[string]interface{}{
 		"graph_id":          g.ID(),
