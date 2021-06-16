@@ -133,7 +133,7 @@ func (a *arangoSource) ExistsOboGraph(g graph.OboGraph) bool {
 }
 
 func (a *arangoSource) SaveTerms(g graph.OboGraph) (int, error) {
-	id, err := a.graphDocId(g)
+	id, err := a.graphDocID(g)
 	if err != nil {
 		return 0, err
 	}
@@ -199,7 +199,7 @@ func (a *arangoSource) UpdateOboGraphInfo(g graph.OboGraph) error {
 // and returns no of new and updated terms
 func (a *arangoSource) SaveOrUpdateTerms(g graph.OboGraph) (*storage.Stats, error) {
 	stats := new(storage.Stats)
-	id, err := a.graphDocId(g)
+	id, err := a.graphDocID(g)
 	if err != nil {
 		return stats, err
 	}
@@ -307,12 +307,12 @@ func (a *arangoSource) todbGraphMeta(g graph.OboGraph) *dbGraphMeta {
 
 func (a *arangoSource) todbTerm(id string, t graph.Term) *dbTerm {
 	dbt := &dbTerm{
-		Id:         string(t.ID()),
+		ID:         string(t.ID()),
 		Iri:        t.IRI(),
 		Label:      t.Label(),
 		RdfType:    t.RdfType(),
 		Deprecated: t.IsDeprecated(),
-		GraphId:    id,
+		GraphID:    id,
 	}
 	if !t.HasMeta() {
 		return dbt
@@ -376,7 +376,7 @@ func (a *arangoSource) todbRelationhip(r graph.Relationship) (*dbRelationship, e
 	if v, ok := oMap[r.Object()]; ok {
 		dbr.From = v
 	} else {
-		id, err := a.getDocId(r.Object())
+		id, err := a.getDocID(r.Object())
 		if err != nil {
 			return dbr, err
 		}
@@ -386,7 +386,7 @@ func (a *arangoSource) todbRelationhip(r graph.Relationship) (*dbRelationship, e
 	if v, ok := oMap[r.Subject()]; ok {
 		dbr.To = v
 	} else {
-		id, err := a.getDocId(r.Subject())
+		id, err := a.getDocID(r.Subject())
 		if err != nil {
 			return dbr, err
 		}
@@ -396,7 +396,7 @@ func (a *arangoSource) todbRelationhip(r graph.Relationship) (*dbRelationship, e
 	if v, ok := oMap[r.Predicate()]; ok {
 		dbr.Predicate = v
 	} else {
-		id, err := a.getDocId(r.Predicate())
+		id, err := a.getDocID(r.Predicate())
 		if err != nil {
 			return dbr, err
 		}
@@ -406,7 +406,7 @@ func (a *arangoSource) todbRelationhip(r graph.Relationship) (*dbRelationship, e
 	return dbr, nil
 }
 
-func (a *arangoSource) getDocId(nid graph.NodeID) (string, error) {
+func (a *arangoSource) getDocID(nid graph.NodeID) (string, error) {
 	return a.graphDocQuery(
 		getid,
 		map[string]interface{}{
@@ -415,7 +415,7 @@ func (a *arangoSource) getDocId(nid graph.NodeID) (string, error) {
 		})
 }
 
-func (a *arangoSource) graphDocId(g graph.OboGraph) (string, error) {
+func (a *arangoSource) graphDocID(g graph.OboGraph) (string, error) {
 	return a.graphDocQuery(
 		getid,
 		map[string]interface{}{
