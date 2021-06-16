@@ -217,15 +217,15 @@ func (a *arangoSource) SaveOrUpdateTerms(g graph.OboGraph) (*storage.Stats, erro
 
 func (a *arangoSource) manageTerms(g graph.OboGraph, tmpColl driver.Collection) (*storage.Stats, error) {
 	stats := new(storage.Stats)
-	ucount, err := a.updateTerms(g, tmpColl)
+	ucount, err := a.editTerms(tupdt, g, tmpColl)
 	if err != nil {
 		return stats, err
 	}
-	icount, err := a.insertTerms(g, tmpColl)
+	icount, err := a.editTerms(tinst, g, tmpColl)
 	if err != nil {
 		return stats, err
 	}
-	ocount, err := a.obsoleteTerms(g, tmpColl)
+	ocount, err := a.editTerms(tdelt, g, tmpColl)
 	if err != nil {
 		return stats, err
 	}
@@ -446,53 +446,19 @@ func (a *arangoSource) graphDocQuery(query string, bindVars map[string]interface
 	return ret, err
 }
 
-func (a *arangoSource) insertTerms(g graph.OboGraph, tmpColl driver.Collection) (int, error) {
-	var icount int
-	ri, err := a.database.DoRun(tinst, map[string]interface{}{
-		"graph_id":          g.ID(),
-		"@graph_collection": a.graphc.Name(),
-		"@term_collection":  a.termc.Name(),
-		"@temp_collection":  tmpColl.Name(),
-	})
-	if err != nil {
-		return icount, fmt.Errorf("unable to run term insert query %s", err)
-	}
-	if err := ri.Read(&icount); err != nil {
-		return icount, fmt.Errorf("error in reading number of inserts %s", err)
-	}
-	return icount, nil
-}
-
-func (a *arangoSource) updateTerms(g graph.OboGraph, tmpColl driver.Collection) (int, error) {
-	var ucount int
-	ru, err := a.database.DoRun(tupdt, map[string]interface{}{
-		"graph_id":          g.ID(),
-		"@graph_collection": a.graphc.Name(),
-		"@term_collection":  a.termc.Name(),
-		"@temp_collection":  tmpColl.Name(),
-	})
-	if err != nil {
-		return ucount, fmt.Errorf("unable to run term update query %s", err)
-	}
-	if err := ru.Read(&ucount); err != nil {
-		return ucount, fmt.Errorf("error in reading number of updates %s", err)
-	}
-	return ucount, nil
-}
-
-func (a *arangoSource) obsoleteTerms(g graph.OboGraph, tmpColl driver.Collection) (int, error) {
+func (a *arangoSource) editTerms(query string, g graph.OboGraph, tmpColl driver.Collection) (int, error) {
 	var ocount int
-	ru, err := a.database.DoRun(tdelt, map[string]interface{}{
+	ru, err := a.database.DoRun(query, map[string]interface{}{
 		"graph_id":          g.ID(),
 		"@graph_collection": a.graphc.Name(),
 		"@term_collection":  a.termc.Name(),
 		"@temp_collection":  tmpColl.Name(),
 	})
 	if err != nil {
-		return ocount, fmt.Errorf("unable to run term obsolete query %s", err)
+		return ocount, fmt.Errorf("unable to run term query %s", err)
 	}
 	if err := ru.Read(&ocount); err != nil {
-		return ocount, fmt.Errorf("error in reading number of obsoletion %s", err)
+		return ocount, fmt.Errorf("error in reading from database %s", err)
 	}
 	return ocount, nil
 }
