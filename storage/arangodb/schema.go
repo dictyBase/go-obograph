@@ -37,8 +37,8 @@ type dbGraphProps struct {
 }
 
 type dbTerm struct {
-	GraphId    string      `json:"graph_id"`
-	Id         string      `json:"id"`
+	GraphID    string      `json:"graph_id"`
+	ID         string      `json:"id"`
 	Iri        string      `json:"iri"`
 	Label      string      `json:"label"`
 	RdfType    string      `json:"rdftype"`
