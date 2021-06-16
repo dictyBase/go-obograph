@@ -1,28 +1,21 @@
 package generate
 
 import (
-	"math/rand"
-	"time"
+	"crypto/rand"
 )
 
-const (
-	charSet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-)
-
-var seedRand *rand.Rand = rand.New(rand.NewSource(time.Now().UnixNano()))
-
-func stringWithCharset(length int, charset string) string {
-	var b []byte
-	for i := 0; i < length; i++ {
-		b = append(
-			b,
-			charset[seedRand.Intn(len(charset))],
-		)
+func stringWithCharset(strSize int) string {
+	charSet := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	ls := len(charSet)
+	b := make([]byte, strSize)
+	rand.Read(b)
+	for k, v := range b {
+		b[k] = charSet[v%byte(ls)]
 	}
 	return string(b)
 }
 
 // RandString generates a random string of a specific length
 func RandString(length int) string {
-	return stringWithCharset(length, charSet)
+	return stringWithCharset(length)
 }
