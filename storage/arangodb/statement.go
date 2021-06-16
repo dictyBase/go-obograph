@@ -90,6 +90,7 @@ const (
 			FOR ecvt in @@term_collection
 				FILTER ecvt.graph_id == fcv[0]
 				FILTER diff == ecvt.id
+				FILTER ecvt.deprecated == false
 				UPDATE {
 					 _key: ecvt._key,
 					 deprecated: true
