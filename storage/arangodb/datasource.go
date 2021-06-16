@@ -106,7 +106,7 @@ type arangoSource struct {
 // SaveOboGraphInfo perist OBO graphs metadata in the storage
 func (a *arangoSource) SaveOboGraphInfo(g graph.OboGraph) error {
 	dg := dbGraphInfo{
-		Id:       g.ID(),
+		ID:       g.ID(),
 		IRI:      g.IRI(),
 		Label:    g.Label(),
 		Metadata: a.todbGraphMeta(g),

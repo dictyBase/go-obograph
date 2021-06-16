@@ -24,7 +24,7 @@ type arangoCollection struct {
 }
 
 type dbGraphInfo struct {
-	Id       string       `json:"id,omitempty"`
+	ID       string       `json:"id,omitempty"`
 	IRI      string       `json:"iri,omitempty"`
 	Label    string       `json:"label,omitempty"`
 	Metadata *dbGraphMeta `json:"metadata,omitempty"`
