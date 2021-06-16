@@ -43,4 +43,4 @@ Example of a command line application to store OBO Graph in arangodb database
 		}
 
 */
-package go_obograph
+package goobograph

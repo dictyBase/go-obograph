@@ -215,7 +215,7 @@ func (a *arangoSource) SaveOrUpdateTerms(g graph.OboGraph) (*storage.Stats, erro
 	return a.manageTerms(g, tmpColl)
 }
 
-func (a *arangoSource) manageTerms(g graph.OboGraph, tmpColl driver.Collection) (*storage.Stats, error) {
+func (a *arangoSource) manageTerms(g graph.OboGraph, tmpColl driver.AccessTarget) (*storage.Stats, error) {
 	stats := new(storage.Stats)
 	ucount, err := a.editTerms(tupdt, g, tmpColl)
 	if err != nil {
@@ -238,9 +238,12 @@ func (a *arangoSource) manageTerms(g graph.OboGraph, tmpColl driver.Collection) 
 // SaveNewRelationships saves only the new relationships that are absent in the storage
 func (a *arangoSource) SaveNewRelationships(g graph.OboGraph) (int, error) {
 	ncount := 0
+	rnd, err := generate.RandString(12)
+	if err != nil {
+		return ncount, err
+	}
 	tmpColl, err := a.database.CreateCollection(
-		generate.RandString(12),
-		&driver.CreateCollectionOptions{
+		rnd, &driver.CreateCollectionOptions{
 			Type: driver.CollectionTypeEdge,
 		},
 	)
@@ -463,13 +466,17 @@ func (a *arangoSource) editTerms(query string, g graph.OboGraph, tmpColl driver.
 	return ocount, nil
 }
 
-func (a *arangoSource) loadTermsinTemp(id string, g graph.OboGraph) (driver.Collection, error) {
+func (a *arangoSource) loadTermsinTemp(id string, g graph.OboGraph) (*arangoCollection, error) {
+	coll := new(arangoCollection)
+	rnd, err := generate.RandString(13)
+	if err != nil {
+		return coll, err
+	}
 	tmpColl, err := a.database.CreateCollection(
-		generate.RandString(13),
-		&driver.CreateCollectionOptions{},
+		rnd, &driver.CreateCollectionOptions{},
 	)
 	if err != nil {
-		return tmpColl, err
+		return coll, err
 	}
 	var dbterms []*dbTerm
 	for _, t := range g.Terms() {
@@ -480,5 +487,6 @@ func (a *arangoSource) loadTermsinTemp(id string, g graph.OboGraph) (driver.Coll
 		dbterms,
 		&driver.ImportDocumentOptions{Complete: true},
 	)
-	return tmpColl, err
+	coll.Collection = tmpColl
+	return coll, err
 }

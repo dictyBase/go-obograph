@@ -1,5 +1,7 @@
 package arangodb
 
+import "github.com/arangodb/go-driver"
+
 var curieMap = map[string]string{
 	"http://www.geneontology.org/formats/oboInOwl#date":                "date",
 	"http://www.geneontology.org/formats/oboInOwl#saved-by":            "saved_by",
@@ -15,6 +17,10 @@ var curieMap = map[string]string{
 	"http://purl.org/dc/elements/1.1/description":                      "description",
 	"http://purl.org/dc/terms/license":                                 "license",
 	"http://purl.org/dc/elements/1.1/title":                            "title",
+}
+
+type arangoCollection struct {
+	driver.Collection
 }
 
 type dbGraphInfo struct {
