@@ -15,6 +15,8 @@ import (
 	"github.com/dictyBase/go-obograph/storage"
 )
 
+type removeTempCollection func(tmp *arangoCollection)
+
 // ConnectParams are the parameters required for connecting to arangodb
 type ConnectParams struct {
 	User     string `validate:"required"`
@@ -203,15 +205,11 @@ func (a *arangoSource) SaveOrUpdateTerms(g graph.OboGraph) (*storage.Stats, erro
 	if err != nil {
 		return stats, err
 	}
-	tmpColl, err := a.loadTermsinTemp(id, g)
+	tmpColl, fn, err := a.loadTermsinTemp(id, g)
 	if err != nil {
 		return stats, err
 	}
-	defer func() {
-		if err := tmpColl.Remove(context.Background()); err != nil {
-			log.Printf("error in removing tmp collection %s", err)
-		}
-	}()
+	defer fn(tmpColl)
 	return a.manageTerms(g, tmpColl)
 }
 
@@ -238,43 +236,11 @@ func (a *arangoSource) manageTerms(g graph.OboGraph, tmpColl driver.AccessTarget
 // SaveNewRelationships saves only the new relationships that are absent in the storage
 func (a *arangoSource) SaveNewRelationships(g graph.OboGraph) (int, error) {
 	ncount := 0
-	rnd, err := generate.RandString(12)
+	tmpColl, fn, err := a.loadRelationsinTemp(g)
 	if err != nil {
 		return ncount, err
 	}
-	tmpColl, err := a.database.CreateCollection(
-		rnd, &driver.CreateCollectionOptions{
-			Type: driver.CollectionTypeEdge,
-		},
-	)
-	if err != nil {
-		return ncount, err
-	}
-	defer func() {
-		if err := tmpColl.Remove(context.Background()); err != nil {
-			log.Printf("error in removing tmp collection %s", err)
-		}
-	}()
-	var dbrs []*dbRelationship
-	for _, r := range g.Relationships() {
-		dbrel, err := a.todbRelationhip(r)
-		if err != nil {
-			return 0, err
-		}
-		dbrs = append(dbrs, dbrel)
-	}
-	_, err = tmpColl.ImportDocuments(
-		context.Background(),
-		dbrs,
-		&driver.ImportDocumentOptions{Complete: true},
-	)
-	if err != nil {
-		return ncount,
-			fmt.Errorf(
-				"error in inserting relationships in temp collection %s %s",
-				tmpColl.Name(), err,
-			)
-	}
+	defer fn(tmpColl)
 	r, err := a.database.DoRun(rinst, map[string]interface{}{
 		"@relationship_collection": a.relc.Name(),
 		"@graph_collection":        a.graphc.Name(),
@@ -465,18 +431,58 @@ func (a *arangoSource) editTerms(query string, g graph.OboGraph, tmpColl driver.
 	}
 	return ocount, nil
 }
-
-func (a *arangoSource) loadTermsinTemp(id string, g graph.OboGraph) (*arangoCollection, error) {
+func (a *arangoSource) loadRelationsinTemp(g graph.OboGraph) (*arangoCollection, removeTempCollection, error) {
 	coll := new(arangoCollection)
+	fn := func(tmpColl *arangoCollection) {
+		if err := tmpColl.Remove(context.Background()); err != nil {
+			log.Printf("error in removing tmp collection %s", err)
+		}
+	}
 	rnd, err := generate.RandString(13)
 	if err != nil {
-		return coll, err
+		return coll, fn, err
+	}
+	tmpColl, err := a.database.CreateCollection(
+		rnd, &driver.CreateCollectionOptions{
+			Type: driver.CollectionTypeEdge,
+		},
+	)
+	if err != nil {
+		return coll, fn, err
+	}
+	var dbrs []*dbRelationship
+	for _, r := range g.Relationships() {
+		dbrel, err := a.todbRelationhip(r)
+		if err != nil {
+			return coll, fn, err
+		}
+		dbrs = append(dbrs, dbrel)
+	}
+	_, err = tmpColl.ImportDocuments(
+		context.Background(),
+		dbrs,
+		&driver.ImportDocumentOptions{Complete: true},
+	)
+	coll.Collection = tmpColl
+	return coll, fn, err
+}
+
+func (a *arangoSource) loadTermsinTemp(id string, g graph.OboGraph) (*arangoCollection, removeTempCollection, error) {
+	coll := new(arangoCollection)
+	fn := func(tmpColl *arangoCollection) {
+		if err := tmpColl.Remove(context.Background()); err != nil {
+			log.Printf("error in removing tmp collection %s", err)
+		}
+	}
+	rnd, err := generate.RandString(13)
+	if err != nil {
+		return coll, fn, err
 	}
 	tmpColl, err := a.database.CreateCollection(
 		rnd, &driver.CreateCollectionOptions{},
 	)
 	if err != nil {
-		return coll, err
+		return coll, fn, err
 	}
 	var dbterms []*dbTerm
 	for _, t := range g.Terms() {
@@ -488,5 +494,5 @@ func (a *arangoSource) loadTermsinTemp(id string, g graph.OboGraph) (*arangoColl
 		&driver.ImportDocumentOptions{Complete: true},
 	)
 	coll.Collection = tmpColl
-	return coll, err
+	return coll, fn, err
 }
