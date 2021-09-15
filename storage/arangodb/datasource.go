@@ -40,13 +40,19 @@ type CollectionParams struct {
 	OboGraph string `validate:"required"`
 }
 
+func validateAll(ai ...interface{}) error {
+	validate := validator.New()
+	for _, iface := range ai {
+		if err := validate.Struct(iface); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func NewDataSource(connP *ConnectParams, collP *CollectionParams) (storage.DataSource, error) {
 	var ds *arangoSource
-	validate := validator.New()
-	if err := validate.Struct(connP); err != nil {
-		return ds, err
-	}
-	if err := validate.Struct(collP); err != nil {
+	if err := validateAll(connP, collP); err != nil {
 		return ds, err
 	}
 	sess, db, err := manager.NewSessionDb(&manager.ConnectParams{
