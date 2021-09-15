@@ -8,19 +8,47 @@ import (
 )
 
 type OntoCollection struct {
-	Term driver.Collection
-	Rel  driver.Collection
-	Cv   driver.Collection
-	Obog driver.Graph
+	Term  driver.Collection
+	Rel   driver.Collection
+	Cv    driver.Collection
+	Obog  driver.Graph
+	db    *manager.Database
+	collP *CollectionParams
 }
 
-// CreateCollection creates all the necessary collections, graph and index required
-// for persisting obojson ontology in arangodb
-func CreateCollection(db *manager.Database, collP *CollectionParams) (*OntoCollection, error) {
-	oc, err := docCollection(db, collP)
+func (oc *OntoCollection) docCollection() error {
+	db := oc.db
+	collP := oc.collP
+	termc, err := db.FindOrCreateCollection(
+		collP.Term,
+		&driver.CreateCollectionOptions{},
+	)
 	if err != nil {
-		return oc, err
+		return err
 	}
+	relc, err := db.FindOrCreateCollection(
+		collP.Relationship,
+		&driver.CreateCollectionOptions{Type: driver.CollectionTypeEdge},
+	)
+	if err != nil {
+		return err
+	}
+	graphc, err := db.FindOrCreateCollection(
+		collP.GraphInfo,
+		&driver.CreateCollectionOptions{},
+	)
+	if err != nil {
+		return err
+	}
+	oc.Term = termc
+	oc.Rel = relc
+	oc.Cv = graphc
+	return nil
+}
+
+func (oc *OntoCollection) graphAndIndex() error {
+	db := oc.db
+	collP := oc.collP
 	obog, err := db.FindOrCreateGraph(
 		collP.OboGraph,
 		[]driver.EdgeDefinition{{
@@ -29,9 +57,8 @@ func CreateCollection(db *manager.Database, collP *CollectionParams) (*OntoColle
 			To:         []string{oc.Term.Name()},
 		}})
 	if err != nil {
-		return oc, err
+		return err
 	}
-	oc.Obog = obog
 	_, _, err = oc.Term.EnsurePersistentIndex(
 		context.Background(),
 		[]string{"label"},
@@ -39,34 +66,19 @@ func CreateCollection(db *manager.Database, collP *CollectionParams) (*OntoColle
 			Name:         "label-idx",
 			InBackground: true,
 		})
-	return oc, err
+	oc.Obog = obog
+	return nil
 }
 
-func docCollection(db *manager.Database, collP *CollectionParams) (*OntoCollection, error) {
-	oc := &OntoCollection{}
-	termc, err := db.FindOrCreateCollection(
-		collP.Term,
-		&driver.CreateCollectionOptions{},
-	)
-	if err != nil {
+// CreateCollection creates all the necessary collections, graph and index required
+// for persisting obojson ontology in arangodb
+func CreateCollection(db *manager.Database, collP *CollectionParams) (*OntoCollection, error) {
+	oc := &OntoCollection{db: db, collP: collP}
+	if err := oc.docCollection(); err != nil {
 		return oc, err
 	}
-	relc, err := db.FindOrCreateCollection(
-		collP.Relationship,
-		&driver.CreateCollectionOptions{Type: driver.CollectionTypeEdge},
-	)
-	if err != nil {
+	if err := oc.graphAndIndex(); err != nil {
 		return oc, err
 	}
-	graphc, err := db.FindOrCreateCollection(
-		collP.GraphInfo,
-		&driver.CreateCollectionOptions{},
-	)
-	if err != nil {
-		return oc, err
-	}
-	oc.Term = termc
-	oc.Rel = relc
-	oc.Cv = graphc
 	return oc, nil
 }
