@@ -55,7 +55,7 @@ func NewDataSource(connP *ConnectParams, collP *CollectionParams) (storage.DataS
 	if err := validateAll(connP, collP); err != nil {
 		return ds, err
 	}
-	sess, db, err := manager.NewSessionDb(&manager.ConnectParams{
+	_, db, err := manager.NewSessionDb(&manager.ConnectParams{
 		User:     connP.User,
 		Pass:     connP.Pass,
 		Database: connP.Database,
@@ -93,7 +93,6 @@ func NewDataSource(connP *ConnectParams, collP *CollectionParams) (storage.DataS
 		return ds, err
 	}
 	return &arangoSource{
-		sess:     sess,
 		database: db,
 		termc:    termc,
 		relc:     relc,
@@ -103,7 +102,6 @@ func NewDataSource(connP *ConnectParams, collP *CollectionParams) (storage.DataS
 }
 
 type arangoSource struct {
-	sess     *manager.Session
 	database *manager.Database
 	termc    driver.Collection
 	relc     driver.Collection
