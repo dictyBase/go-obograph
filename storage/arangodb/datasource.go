@@ -50,6 +50,23 @@ func validateAll(ai ...interface{}) error {
 	return nil
 }
 
+func NewDataSourceFromDb(db *manager.Database, collP *CollectionParams) (storage.DataSource, error) {
+	if err := validateAll(collP); err != nil {
+		return &arangoSource{}, err
+	}
+	oc, err := CreateCollection(db, collP)
+	if err != nil {
+		return &arangoSource{}, err
+	}
+	return &arangoSource{
+		database: db,
+		termc:    oc.Term,
+		relc:     oc.Rel,
+		graphc:   oc.Cv,
+		obog:     oc.Obog,
+	}, nil
+}
+
 func NewDataSource(connP *ConnectParams, collP *CollectionParams) (storage.DataSource, error) {
 	var ds *arangoSource
 	if err := validateAll(connP, collP); err != nil {
