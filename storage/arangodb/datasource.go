@@ -66,38 +66,16 @@ func NewDataSource(connP *ConnectParams, collP *CollectionParams) (storage.DataS
 	if err != nil {
 		return ds, err
 	}
-	termc, err := db.FindOrCreateCollection(collP.Term, &driver.CreateCollectionOptions{})
-	if err != nil {
-		return ds, err
-	}
-	relc, err := db.FindOrCreateCollection(
-		collP.Relationship,
-		&driver.CreateCollectionOptions{Type: driver.CollectionTypeEdge},
-	)
-	if err != nil {
-		return ds, err
-	}
-	graphc, err := db.FindOrCreateCollection(collP.GraphInfo, &driver.CreateCollectionOptions{})
-	if err != nil {
-		return ds, err
-	}
-	obog, err := db.FindOrCreateGraph(
-		collP.OboGraph,
-		[]driver.EdgeDefinition{{
-			Collection: relc.Name(),
-			From:       []string{termc.Name()},
-			To:         []string{termc.Name()},
-		}},
-	)
+	oc, err := CreateCollection(db, collP)
 	if err != nil {
 		return ds, err
 	}
 	return &arangoSource{
 		database: db,
-		termc:    termc,
-		relc:     relc,
-		graphc:   graphc,
-		obog:     obog,
+		termc:    oc.Term,
+		relc:     oc.Rel,
+		graphc:   oc.Cv,
+		obog:     oc.Obog,
 	}, nil
 }
 
