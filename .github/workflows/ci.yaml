@@ -9,6 +9,13 @@ on:
 jobs:
   test:
     runs-on: ubuntu-20.04
+    services:
+      arangodb:
+        image: arangodb:3.6.3
+        env:
+          ARANGO_ROOT_PASSWORD: rootpass
+        ports:
+          - 8529/tcp
     steps:
       - name: set up golang
         uses: actions/setup-go@v2
@@ -19,6 +26,10 @@ jobs:
       - name: unit test
         run: go test -covermode=atomic -coverprofile=profile.cov -v ./...
         env:
+          ARANGO_USER: root
+          ARANGO_PASS: rootpass
+          ARANGO_HOST: localhost
+          ARANGO_PORT: ${{ job.services.arangodb.ports[8529] }}
           GOPROXY: https://proxy.golang.org
       - name: upload coverage to codecov
         uses: codecov/codecov-action@v1.0.3
