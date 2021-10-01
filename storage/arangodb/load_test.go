@@ -77,4 +77,12 @@ func TestLoadOboJSONFromDataSource(t *testing.T) {
 	assert.Equal(info.TermStats.Created, 1271, "should load 1271 terms")
 	assert.Equal(info.TermStats.Updated, 0, "should have not updated any term")
 	assert.Equal(info.TermStats.Deleted, 0, "should have not deleted any term")
+	r2 := oboReader(assert)
+	info2, err := storage.LoadOboJSONFromDataSource(r2, ds)
+	assert.NoErrorf(err, "expect no error from reloading, received %s", err)
+	assert.False(info2.IsCreated, "expect no obo data to be created")
+	assert.Equal(info2.RelationStats, 0, "should not load any relationships")
+	assert.Equal(info2.TermStats.Created, 0, "should not load any terms")
+	assert.Equal(info2.TermStats.Updated, 1271, "should have updated 1271 term")
+	assert.Equal(info2.TermStats.Deleted, 0, "should have not deleted any term")
 }
