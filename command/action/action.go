@@ -6,110 +6,120 @@ import (
 	"strconv"
 
 	"github.com/dictyBase/go-obograph/graph"
+	"github.com/dictyBase/go-obograph/storage"
 	araobo "github.com/dictyBase/go-obograph/storage/arangodb"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
 )
 
-// LoadOntologies load ontologies into arangodb
-func LoadOntologies(c *cli.Context) error {
-	arPort, _ := strconv.Atoi(c.String("arangodb-port"))
-	cp := &araobo.ConnectParams{
-		User:     c.String("arangodb-user"),
-		Pass:     c.String("arangodb-pass"),
-		Host:     c.String("arangodb-host"),
-		Database: c.String("arangodb-database"),
+const exitCode = 2
+
+func ConnectParams(clt *cli.Context) *araobo.ConnectParams {
+	arPort, _ := strconv.Atoi(clt.String("arangodb-port"))
+
+	return &araobo.ConnectParams{
+		User:     clt.String("arangodb-user"),
+		Pass:     clt.String("arangodb-pass"),
+		Host:     clt.String("arangodb-host"),
+		Database: clt.String("arangodb-database"),
 		Port:     arPort,
-		Istls:    c.Bool("is-secure"),
+		Istls:    clt.Bool("is-secure"),
 	}
-	clp := &araobo.CollectionParams{
-		Term:         c.String("term-collection"),
-		Relationship: c.String("rel-collection"),
-		GraphInfo:    c.String("cv-collection"),
-		OboGraph:     c.String("obograph"),
+}
+
+func CollectParams(clt *cli.Context) *araobo.CollectionParams {
+	return &araobo.CollectionParams{
+		Term:         clt.String("term-collection"),
+		Relationship: clt.String("rel-collection"),
+		GraphInfo:    clt.String("cv-collection"),
+		OboGraph:     clt.String("obograph"),
 	}
-	ds, err := araobo.NewDataSource(cp, clp)
+}
+
+func saveNewGraph(dsa storage.DataSource, grph graph.OboGraph, logger *logrus.Entry) error {
+	err := dsa.SaveOboGraphInfo(grph)
 	if err != nil {
-		return cli.NewExitError(err.Error(), 2)
+		return fmt.Errorf("error in saving graph %s", err)
 	}
-	logger := getLogger(c)
-	for _, v := range c.StringSlice("obojson") {
-		r, err := os.Open(v)
-		if err != nil {
-			return cli.NewExitError(
-				fmt.Sprintf("error in opening file %s %s", v, err),
-				2,
-			)
-		}
-		defer r.Close()
-		g, err := graph.BuildGraph(r)
-		if err != nil {
-			return cli.NewExitError(
-				fmt.Sprintf("error in building graph from %s %s", v, err),
-				2,
-			)
-		}
-		if !ds.ExistsOboGraph(g) {
-			logger.Infof("obograph %s does not exist, have to be loaded", v)
-			err := ds.SaveOboGraphInfo(g)
-			if err != nil {
-				return cli.NewExitError(
-					fmt.Sprintf("error in saving graph %s", err),
-					2,
-				)
-			}
-			nt, err := ds.SaveTerms(g)
-			if err != nil {
-				return cli.NewExitError(
-					fmt.Sprintf("error in saving terms %s", err),
-					2,
-				)
-			}
-			logger.Infof("saved %d terms", nt)
-			nr, err := ds.SaveRelationships(g)
-			if err != nil {
-				return cli.NewExitError(
-					fmt.Sprintf("error in saving relationships %s", err),
-					2,
-				)
-			}
-			logger.Infof("saved %d relationships", nr)
-			continue
-		}
-		logger.Infof("obograph %s exist, have to be updated", v)
-		if err := ds.UpdateOboGraphInfo(g); err != nil {
-			return cli.NewExitError(
-				fmt.Sprintf("error in updating graph information %s", err),
-				2,
-			)
-		}
-		stats, err := ds.SaveOrUpdateTerms(g)
-		if err != nil {
-			return cli.NewExitError(
-				fmt.Sprintf("error in updating terms %s", err),
-				2,
-			)
-		}
-		logger.Infof(
-			"saved::%d terms updated::%d terms obsoleted::%d terms",
-			stats.Created, stats.Updated, stats.Deleted,
-		)
-		ur, err := ds.SaveNewRelationships(g)
-		if err != nil {
-			return cli.NewExitError(
-				fmt.Sprintf("error in saving relationships %s", err),
-				2,
-			)
-		}
-		logger.Infof("updated %d relationships", ur)
+	nst, err := dsa.SaveTerms(grph)
+	if err != nil {
+		return fmt.Errorf("error in saving terms %s", err)
 	}
+	logger.Infof("saved %d terms", nst)
+	nsr, err := dsa.SaveRelationships(grph)
+	if err != nil {
+		return fmt.Errorf("error in saving relationships %s", err)
+	}
+	logger.Infof("saved %d relationships", nsr)
+
 	return nil
 }
 
-func getLogger(c *cli.Context) *logrus.Entry {
+func saveExistentGraph(dsa storage.DataSource, grph graph.OboGraph, logger *logrus.Entry) error {
+	if err := dsa.UpdateOboGraphInfo(grph); err != nil {
+		return fmt.Errorf("error in updating graph information %s", err)
+	}
+	stats, err := dsa.SaveOrUpdateTerms(grph)
+	if err != nil {
+		return fmt.Errorf("error in updating terms %s", err)
+	}
+	logger.Infof(
+		"saved::%d terms updated::%d terms obsoleted::%d terms",
+		stats.Created, stats.Updated, stats.Deleted,
+	)
+	urs, err := dsa.SaveNewRelationships(grph)
+	if err != nil {
+		return fmt.Errorf("error in saving relationships %s", err)
+	}
+	logger.Infof("updated %d relationships", urs)
+
+	return nil
+}
+
+// LoadOntologies load ontologies into arangodb.
+func LoadOntologies(clt *cli.Context) error {
+	dsa, err := araobo.NewDataSource(ConnectParams(clt), CollectParams(clt))
+	if err != nil {
+		return cli.NewExitError(err.Error(), exitCode)
+	}
+	logger := getLogger(clt)
+	for _, objs := range clt.StringSlice("obojson") {
+		rdr, err := os.Open(objs)
+		if err != nil {
+			return cli.NewExitError(
+				fmt.Sprintf("error in opening file %s %s", objs, err),
+				exitCode,
+			)
+		}
+		defer rdr.Close()
+		grph, err := graph.BuildGraph(rdr)
+		if err != nil {
+			return cli.NewExitError(
+				fmt.Sprintf("error in building graph from %s %s", objs, err),
+				exitCode,
+			)
+		}
+		if !dsa.ExistsOboGraph(grph) {
+			logger.Infof("obograph %s does not exist, have to be loaded", objs)
+			if err := saveNewGraph(dsa, grph, logger); err != nil {
+				return cli.NewExitError(err.Error(), exitCode)
+			}
+
+			continue
+		}
+		logger.Infof("obograph %s exist, have to be updated", objs)
+		if err := saveExistentGraph(dsa, grph, logger); err != nil {
+			return cli.NewExitError(err.Error(), exitCode)
+		}
+	}
+
+	return nil
+}
+
+func getLogger(clt *cli.Context) *logrus.Entry {
 	log := logrus.New()
 	log.Out = os.Stderr
-	switch c.GlobalString("log-format") {
+	switch clt.GlobalString("log-format") {
 	case "text":
 		log.Formatter = &logrus.TextFormatter{
 			TimestampFormat: "02/Jan/2006:15:04:05",
@@ -119,7 +129,7 @@ func getLogger(c *cli.Context) *logrus.Entry {
 			TimestampFormat: "02/Jan/2006:15:04:05",
 		}
 	}
-	l := c.GlobalString("log-level")
+	l := clt.GlobalString("log-level")
 	switch l {
 	case "debug":
 		log.Level = logrus.DebugLevel
@@ -132,5 +142,6 @@ func getLogger(c *cli.Context) *logrus.Entry {
 	case "panic":
 		log.Level = logrus.PanicLevel
 	}
+
 	return logrus.NewEntry(log)
 }
