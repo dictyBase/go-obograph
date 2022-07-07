@@ -5,8 +5,7 @@
 [![codecov](https://codecov.io/gh/dictyBase/go-obograph/branch/develop/graph/badge.svg)](https://codecov.io/gh/dictyBase/arangomanager)   
 [![Maintainability](https://api.codeclimate.com/v1/badges/6f3e28561a7900c8d931/maintainability)](https://codeclimate.com/github/dictyBase/go-obograph/maintainability)
 ![Last commit](https://badgen.net/github/last-commit/dictyBase/go-obograph/develop)   
-[![Funding](https://badgen.net/badge/NIGMS/Rex%20L%20Chisholm,dictyBase/yellow?list=|)](https://projectreporter.nih.gov/project_info_description.cfm?aid=9476993)
-[![Funding](https://badgen.net/badge/NIGMS/Rex%20L%20Chisholm,DSC/yellow?list=|)](https://projectreporter.nih.gov/project_info_description.cfm?aid=9438930)
+[![Funding](https://badgen.net/badge/Funding/Rex%20L%20Chisholm,dictyBase,DCR/yellow?list=|)](https://projectreporter.nih.gov/project_info_description.cfm?aid=10024726&icde=0)
 
 A golang library for handling [OBO Graphs](https://github.com/geneontology/obographs)
 

@@ -1,34 +1,34 @@
 package model
 
-//PropertyValue for modeling ontology metadata other than
-//term and their relationships
+// PropertyValue for modeling ontology metadata other than
+// term and their relationships.
 type PropertyValue struct {
 	val  string
 	refs []string
 	prd  string
 }
 
-// Value is the value of property
+// Value is the value of property.
 func (p *PropertyValue) Value() string {
 	return p.val
 }
 
-// Xrefs is list of data supporting the property-value assertion
+// Xrefs is list of data supporting the property-value assertion.
 func (p *PropertyValue) Xrefs() []string {
 	return p.refs
 }
 
-// Pred corresponds to OWL properties
+// Pred corresponds to OWL properties.
 func (p *PropertyValue) Pred() string {
 	return p.prd
 }
 
-// BasicPropertyValue is a generic PropertyValue
+// BasicPropertyValue is a generic PropertyValue.
 type BasicPropertyValue struct {
 	*PropertyValue
 }
 
-// NewBasicPropertyValue returns a new Basic
+// NewBasicPropertyValue returns a new Basic.
 func NewBasicPropertyValue(prd, val string) *BasicPropertyValue {
 	return &BasicPropertyValue{
 		&PropertyValue{
@@ -38,22 +38,22 @@ func NewBasicPropertyValue(prd, val string) *BasicPropertyValue {
 	}
 }
 
-// Definition represents a textual definition of an ontology term
+// Definition represents a textual definition of an ontology term.
 type Definition struct {
 	*PropertyValue
 }
 
-// NewDefinition returns a new Definition
+// NewDefinition returns a new Definition.
 func NewDefinition(val string, refs []string) *Definition {
 	return &Definition{&PropertyValue{val: val, refs: refs}}
 }
 
-// Synonym represent an alternate term for the node
+// Synonym represent an alternate term for the node.
 type Synonym struct {
 	*PropertyValue
 }
 
-// NewSynonymWithRefs returns a new Synonym
+// NewSynonymWithRefs returns a new Synonym.
 func NewSynonymWithRefs(prd, val string, refs []string) *Synonym {
 	return &Synonym{
 		&PropertyValue{
@@ -64,7 +64,7 @@ func NewSynonymWithRefs(prd, val string, refs []string) *Synonym {
 	}
 }
 
-// NewSynonym returns a new Synonym
+// NewSynonym returns a new Synonym.
 func NewSynonym(prd, val string) *Synonym {
 	return &Synonym{
 		&PropertyValue{
@@ -74,12 +74,12 @@ func NewSynonym(prd, val string) *Synonym {
 	}
 }
 
-// IsExact is a convenience method to check for EXACT scope
+// IsExact is a convenience method to check for EXACT scope.
 func (s *Synonym) IsExact() bool {
 	return s.Pred() == "hasExactSynonym"
 }
 
-// Scope returns OBO-style scope of synonym
+// Scope returns OBO-style scope of synonym.
 func (s *Synonym) Scope() string {
 	scope := "RELATED"
 	switch s.Pred() {
@@ -90,15 +90,16 @@ func (s *Synonym) Scope() string {
 	case "hasBroadSynonym":
 		scope = "BROAD"
 	}
+
 	return scope
 }
 
-// Xref support the property-value assertion
+// Xref support the property-value assertion.
 type Xref struct {
 	*PropertyValue
 }
 
-// NewXref returns a new Xref
+// NewXref returns a new Xref.
 func NewXref(val string) *Xref {
 	return &Xref{
 		&PropertyValue{

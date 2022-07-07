@@ -6,7 +6,7 @@ import (
 	"github.com/dictyBase/go-obograph/graph"
 )
 
-// Stats provides statistics about terms
+// Stats provides statistics about terms.
 type Stats struct {
 	Created int
 	Updated int
@@ -14,7 +14,7 @@ type Stats struct {
 }
 
 // DataSource represents interface for storing and retrieving
-// OBO graphs
+// OBO graphs.
 type DataSource interface {
 	// SaveOboGraphInfo perist OBO graphs metadata in the storage
 	SaveOboGraphInfo(graph.OboGraph) error

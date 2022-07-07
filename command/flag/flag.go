@@ -6,7 +6,7 @@ import (
 )
 
 // OntologyFlags returns a cli.flag slice to use in the command
-// line arguments of the ontology loader
+// line arguments of the ontology loader.
 func OntologyFlags() []cli.Flag {
 	return append(
 		[]cli.Flag{

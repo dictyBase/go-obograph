@@ -6,20 +6,23 @@ import (
 	"github.com/urfave/cli"
 )
 
-// OntologyArgs validates the command line arguments
-func OntologyArgs(c *cli.Context) error {
-	for _, p := range []string{
+const exitCode = 2
+
+// OntologyArgs validates the command line arguments.
+func OntologyArgs(clt *cli.Context) error {
+	for _, param := range []string{
 		"arangodb-pass",
 		"arangodb-database",
 		"arangodb-user",
 		"arangodb-host",
 	} {
-		if len(c.String(p)) == 0 {
+		if len(clt.String(param)) == 0 {
 			return cli.NewExitError(
-				fmt.Sprintf("argument %s is missing", p),
-				2,
+				fmt.Sprintf("argument %s is missing", param),
+				exitCode,
 			)
 		}
 	}
+
 	return nil
 }

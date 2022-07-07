@@ -6,6 +6,7 @@ package graph
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 
 	"github.com/dictyBase/go-obograph/internal"
@@ -13,64 +14,67 @@ import (
 	"github.com/dictyBase/go-obograph/schema"
 )
 
-// BuildGraph builds an in memory graph from JSON-encoded obograph reader
+// BuildGraph builds an in memory graph from JSON-encoded obograph reader.
 func BuildGraph(r io.Reader) (OboGraph, error) {
-	oj := &schema.OboJSON{}
-	err := json.NewDecoder(r).Decode(oj)
+	ojs := &schema.OboJSON{}
+	err := json.NewDecoder(r).Decode(ojs)
 	if err != nil {
-		return &graph{}, err
+		return &graph{}, fmt.Errorf("error in decoding obograph json %s", err)
 	}
-	og := oj.Graphs[0]
-	g := newOboGraph(
-		model.NewMeta(buildGraphMeta(og.Meta)),
-		internal.ExtractID(og.ID),
-		og.ID,
+	ogf := ojs.Graphs[0]
+	grph := newOboGraph(
+		model.NewMeta(buildGraphMeta(ogf.Meta)),
+		internal.ExtractID(ogf.ID),
+		ogf.ID,
 	)
 	// Add the various owl concepts as obo terms
-	g.AddTerm(buildIsaTerm())
-	g.AddTerm(buildsubPropertyTerm())
-	g.AddTerm(buildinverseOfTerm())
-	g.AddTerm(buildTypeTerm())
-	g.AddTerm(buildtopObjectPropertyTerm())
-	for _, jn := range og.Nodes {
-		g.AddTerm(buildTerm(jn))
+	grph.AddTerm(buildIsaTerm())
+	grph.AddTerm(buildsubPropertyTerm())
+	grph.AddTerm(buildinverseOfTerm())
+	grph.AddTerm(buildTypeTerm())
+	grph.AddTerm(buildtopObjectPropertyTerm())
+	for _, jn := range ogf.Nodes {
+		grph.AddTerm(buildTerm(jn))
 	}
-	for _, je := range og.Edges {
-		err := g.AddRelationshipWithID(
+	for _, je := range ogf.Edges {
+		err := grph.AddRelationshipWithID(
 			NodeID(internal.ExtractID(je.Obj)),
 			NodeID(internal.ExtractID(je.Sub)),
 			NodeID(internal.ExtractID(je.Pred)),
 		)
 		if err != nil {
-			return &graph{}, err
+			return &graph{}, fmt.Errorf("error in adding relationship %s", err)
 		}
 	}
-	return g, nil
+
+	return grph, nil
 }
 
-func buildGraphMeta(jm *schema.JSONMeta) *model.MetaOptions {
-	m := buildBaseMeta(jm)
-	if len(jm.Version) > 0 {
-		m.Version = jm.Version
+func buildGraphMeta(jsm *schema.JSONMeta) *model.MetaOptions {
+	meta := buildBaseMeta(jsm)
+	if len(jsm.Version) > 0 {
+		meta.Version = jsm.Version
 	}
-	return m
+
+	return meta
 }
 
-func buildTerm(jn *schema.JSONNode) Term {
-	if jn.Meta != nil {
+func buildTerm(jnn *schema.JSONNode) Term {
+	if jnn.Meta != nil {
 		return NewTermWithMeta(
-			NodeID(internal.ExtractID(jn.ID)),
-			model.NewMeta(buildTermMeta(jn.Meta)),
-			jn.JSONType,
-			jn.Lbl,
-			jn.ID,
+			NodeID(internal.ExtractID(jnn.ID)),
+			model.NewMeta(buildTermMeta(jnn.Meta)),
+			jnn.JSONType,
+			jnn.Lbl,
+			jnn.ID,
 		)
 	}
+
 	return NewTerm(
-		NodeID(internal.ExtractID(jn.ID)),
-		jn.JSONType,
-		jn.Lbl,
-		jn.ID,
+		NodeID(internal.ExtractID(jnn.ID)),
+		jnn.JSONType,
+		jnn.Lbl,
+		jnn.ID,
 	)
 }
 
@@ -119,49 +123,51 @@ func buildIsaTerm() Term {
 	)
 }
 
-func buildTermMeta(jm *schema.JSONMeta) *model.MetaOptions {
-	m := buildBaseMeta(jm)
-	if jm.Synonyms != nil && len(jm.Synonyms) > 0 {
+func buildTermMeta(jsm *schema.JSONMeta) *model.MetaOptions {
+	meta := buildBaseMeta(jsm)
+	if jsm.Synonyms != nil && len(jsm.Synonyms) > 0 {
 		var syn []*model.Synonym
-		for _, js := range jm.Synonyms {
+		for _, js := range jsm.Synonyms {
 			if len(js.Xrefs) > 0 {
 				syn = append(syn, model.NewSynonymWithRefs(js.Pred, js.Val, js.Xrefs))
 			} else {
 				syn = append(syn, model.NewSynonym(js.Pred, js.Val))
 			}
 		}
-		m.Synonyms = syn
+		meta.Synonyms = syn
 	}
-	if jm.Definition != nil {
-		m.Definition = model.NewDefinition(
-			jm.Definition.Val,
-			jm.Definition.Xrefs,
+	if jsm.Definition != nil {
+		meta.Definition = model.NewDefinition(
+			jsm.Definition.Val,
+			jsm.Definition.Xrefs,
 		)
 	}
-	if jm.Comments != nil && len(jm.Comments) > 0 {
-		m.Comments = jm.Comments
+	if jsm.Comments != nil && len(jsm.Comments) > 0 {
+		meta.Comments = jsm.Comments
 	}
-	return m
+
+	return meta
 }
 
-func buildBaseMeta(jm *schema.JSONMeta) *model.MetaOptions {
-	m := &model.MetaOptions{}
-	var p []*model.BasicPropertyValue
-	if jm.BasicPropertyValues != nil && len(jm.BasicPropertyValues) > 0 {
-		for _, bp := range jm.BasicPropertyValues {
-			p = append(p, model.NewBasicPropertyValue(bp.Pred, bp.Val))
+func buildBaseMeta(jsm *schema.JSONMeta) *model.MetaOptions {
+	mop := &model.MetaOptions{}
+	pval := make([]*model.BasicPropertyValue, 0)
+	if jsm.BasicPropertyValues != nil && len(jsm.BasicPropertyValues) > 0 {
+		for _, bp := range jsm.BasicPropertyValues {
+			pval = append(pval, model.NewBasicPropertyValue(bp.Pred, bp.Val))
 		}
-		m.BaseProps = p
+		mop.BaseProps = pval
 	}
-	if jm.Subsets != nil && len(jm.Subsets) > 0 {
-		m.Subsets = jm.Subsets
+	if jsm.Subsets != nil && len(jsm.Subsets) > 0 {
+		mop.Subsets = jsm.Subsets
 	}
-	if jm.Xrefs != nil && len(jm.Xrefs) > 0 {
+	if jsm.Xrefs != nil && len(jsm.Xrefs) > 0 {
 		var xref []*model.Xref
-		for _, x := range jm.Xrefs {
+		for _, x := range jsm.Xrefs {
 			xref = append(xref, model.NewXref(x.Val))
 		}
-		m.Xrefs = xref
+		mop.Xrefs = xref
 	}
-	return m
+
+	return mop
 }

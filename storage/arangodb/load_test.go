@@ -15,13 +15,14 @@ func oboReader(assert *require.Assertions) *os.File {
 	if err != nil {
 		assert.NoErrorf(err, "unable to get current dir %s", err)
 	}
-	fh, err := os.Open(
+	fho, err := os.Open(
 		filepath.Join(
 			filepath.Dir(dir), "testdata", "dicty_phenotypes.json",
 		),
 	)
 	assert.NoErrorf(err, "unable to open file %s", err)
-	return fh
+
+	return fho
 }
 
 func tearDown(assert *require.Assertions, ta *testarango.TestArango) {
@@ -39,19 +40,20 @@ func tearDown(assert *require.Assertions, ta *testarango.TestArango) {
 }
 
 func setUp(t *testing.T) (*require.Assertions, *testarango.TestArango, storage.DataSource) {
-	ta, err := testarango.NewTestArangoFromEnv(true)
+	t.Helper()
+	tra, err := testarango.NewTestArangoFromEnv(true)
 	if err != nil {
 		t.Fatalf("unable to construct new TestArango instance %s", err)
 	}
 	assert := require.New(t)
-	ds, err := NewDataSource(
+	dsr, err := NewDataSource(
 		&ConnectParams{
-			User:     ta.User,
-			Pass:     ta.Pass,
-			Host:     ta.Host,
-			Database: ta.Database,
-			Port:     ta.Port,
-			Istls:    ta.Istls,
+			User:     tra.User,
+			Pass:     tra.Pass,
+			Host:     tra.Host,
+			Database: tra.Database,
+			Port:     tra.Port,
+			Istls:    tra.Istls,
 		}, &CollectionParams{
 			Term:         "cvterm",
 			Relationship: "cvterm_relationship",
@@ -62,15 +64,17 @@ func setUp(t *testing.T) (*require.Assertions, *testarango.TestArango, storage.D
 		err,
 		"expect no error in making an arangodb datasource, received %s", err,
 	)
-	return assert, ta, ds
+
+	return assert, tra, dsr
 }
 
 func TestLoadOboJSONFromDataSource(t *testing.T) {
-	assert, ta, ds := setUp(t)
+	t.Parallel()
+	assert, ta, dsr := setUp(t)
 	r := oboReader(assert)
 	defer tearDown(assert, ta)
 	defer r.Close()
-	info, err := storage.LoadOboJSONFromDataSource(r, ds)
+	info, err := storage.LoadOboJSONFromDataSource(r, dsr)
 	assert.NoErrorf(err, "expect no error from loading, received %s", err)
 	assert.True(info.IsCreated, "expect the obo data to be created")
 	assert.Equal(info.RelationStats, 1143, "should load 1143 relationships")
@@ -78,7 +82,7 @@ func TestLoadOboJSONFromDataSource(t *testing.T) {
 	assert.Equal(info.TermStats.Updated, 0, "should have not updated any term")
 	assert.Equal(info.TermStats.Deleted, 0, "should have not deleted any term")
 	r2 := oboReader(assert)
-	info2, err := storage.LoadOboJSONFromDataSource(r2, ds)
+	info2, err := storage.LoadOboJSONFromDataSource(r2, dsr)
 	assert.NoErrorf(err, "expect no error from reloading, received %s", err)
 	assert.False(info2.IsCreated, "expect no obo data to be created")
 	assert.Equal(info2.RelationStats, 0, "should not load any relationships")

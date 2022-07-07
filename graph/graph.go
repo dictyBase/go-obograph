@@ -6,10 +6,10 @@ import (
 	"github.com/dictyBase/go-obograph/model"
 )
 
-// NodeID is a custom type for holding a node id
+// NodeID is a custom type for holding a node id.
 type NodeID string
 
-// OboGraph is an interface for accessing OBO Graphs
+// OboGraph is an interface for accessing OBO Graphs.
 type OboGraph interface {
 	// IRI represents a stable URL for locating the source OWL formatted file
 	IRI() string
@@ -64,58 +64,60 @@ type graph struct {
 	iri       string
 }
 
-func newOboGraph(m *model.Meta, id, iri string) OboGraph {
+func newOboGraph(m *model.Meta, idn, iri string) OboGraph {
 	return &graph{
 		nodes:     make(map[NodeID]Term),
 		edgesUp:   make(map[NodeID]map[NodeID]Relationship),
 		edgesDown: make(map[NodeID]map[NodeID]Relationship),
 		meta:      m,
-		id:        id,
+		id:        idn,
 		iri:       iri,
 	}
 }
 
-// Label is a short human readable description of the graph
+// Label is a short human readable description of the graph.
 func (g *graph) Label() string {
 	return g.lbl
 }
 
-// ID is a short and unique name of the graph
+// ID is a short and unique name of the graph.
 func (g *graph) ID() string {
 	return g.id
 }
 
-// IRI represents a stable URL for locating the source OWL formatted file
+// IRI represents a stable URL for locating the source OWL formatted file.
 func (g *graph) IRI() string {
 	return g.iri
 }
 
-// Meta returns the associated Meta container
+// Meta returns the associated Meta container.
 func (g *graph) Meta() *model.Meta {
 	return g.meta
 }
 
-// Terms returns all terms(node/vertex) in the graph
+// Terms returns all terms(node/vertex) in the graph.
 func (g *graph) Terms() []Term {
-	var t []Term
+	trm := make([]Term, 0)
 	for _, n := range g.nodes {
-		t = append(t, n)
+		trm = append(trm, n)
 	}
-	return t
+
+	return trm
 }
 
-// TermsByType provides a filtered list of specific terms
+// TermsByType provides a filtered list of specific terms.
 func (g *graph) TermsByType(rtype string) []Term {
-	var t []Term
+	trm := make([]Term, 0)
 	for _, n := range g.nodes {
 		if n.RdfType() == rtype {
-			t = append(t, n)
+			trm = append(trm, n)
 		}
 	}
-	return t
+
+	return trm
 }
 
-// Relationships returns all relationships(edges) in the graph
+// Relationships returns all relationships(edges) in the graph.
 func (g *graph) Relationships() []Relationship {
 	var rel []Relationship
 	for id := range g.edgesDown {
@@ -123,42 +125,43 @@ func (g *graph) Relationships() []Relationship {
 			rel = append(rel, g.edgesDown[id][k])
 		}
 	}
+
 	return rel
 }
 
-// Children returns all children terms(depth one)
+// Children returns all children terms(depth one).
 func (g *graph) Children(id NodeID) []Term {
 	return g.getTerms(id, g.edgesDown)
 }
 
-// Parents returns all parent terms(depth one)
+// Parents returns all parent terms(depth one).
 func (g *graph) Parents(id NodeID) []Term {
 	return g.getTerms(id, g.edgesUp)
 }
 
 // DescendentsDFS returns all reachable(direct or indirect) children terms
 // using DFS algorithm.
-func (g *graph) DescendentsDFS(id NodeID) []Term {
+func (g *graph) DescendentsDFS(idn NodeID) []Term {
 	// slice of descendents
-	var d []Term
-	//make sure the node exists in the graph
-	if _, ok := g.nodes[id]; !ok {
-		return d
+	drm := make([]Term, 0)
+	// make sure the node exists in the graph
+	if _, ok := g.nodes[idn]; !ok {
+		return drm
 	}
 	// stack of term ids
-	var st []NodeID
+	stn := make([]NodeID, 0)
 	// keep track of visited terms
 	visited := make(map[NodeID]bool)
 
-	//push the first term(id)
-	st = append(st, id)
-	for len(st) > 0 {
-		//get the last term(id)
-		nid := st[len(st)-1]
-		if len(st) == 1 { // the first case
-			st = st[:0]
+	// push the first term(id)
+	stn = append(stn, idn)
+	for len(stn) > 0 {
+		// get the last term(id)
+		nid := stn[len(stn)-1]
+		if len(stn) == 1 { // the first case
+			stn = stn[:0]
 		} else { // remove the last item from stack
-			st = st[:len(st)-1]
+			stn = stn[:len(stn)-1]
 		}
 		// mark them if not visited
 		if _, ok := visited[nid]; !ok {
@@ -168,121 +171,126 @@ func (g *graph) DescendentsDFS(id NodeID) []Term {
 		for _, child := range g.Children(nid) {
 			// if not visited push them in the stack
 			if _, ok := visited[child.ID()]; !ok {
-				d = append(d, child)
-				st = append(st, child.ID())
+				drm = append(drm, child)
+				stn = append(stn, child.ID())
 			}
 		}
 	}
-	return d
+
+	return drm
 }
 
 // Descendents returns all reachable(direct or indirect) children terms. It uses
-// BFS algorithm
-func (g *graph) Descendents(id NodeID) []Term {
+// BFS algorithm.
+func (g *graph) Descendents(idn NodeID) []Term {
 	// slice of descendents
-	var d []Term
-	//make sure the node exists in the graph
-	if _, ok := g.nodes[id]; !ok {
-		return d
+	drm := make([]Term, 0)
+	// make sure the node exists in the graph
+	if _, ok := g.nodes[idn]; !ok {
+		return drm
 	}
 	// queue of terms
-	var q []NodeID
+	qid := make([]NodeID, 0)
 	// keep track of visited terms
 	visited := make(map[NodeID]bool)
 
-	//queue the first item
-	q = append(q, id)
-	//mark it visited
-	visited[id] = true
-	for len(q) > 0 {
-		//dequeue the first element
-		nid := q[0]
-		if len(q) == 1 { // the first case
-			q = q[:0]
+	// queue the first item
+	qid = append(qid, idn)
+	// mark it visited
+	visited[idn] = true
+	for len(qid) > 0 {
+		// dequeue the first element
+		nid := qid[0]
+		if len(qid) == 1 { // the first case
+			qid = qid[:0]
 		} else { // remove the first element
-			q = q[1:]
+			qid = qid[1:]
 		}
 		// get children of this term
 		for _, child := range g.Children(nid) {
 			// queue if not visited
 			if _, ok := visited[child.ID()]; !ok {
-				q = append(q, child.ID())
+				qid = append(qid, child.ID())
 				// mark them visited
 				visited[child.ID()] = true
 				// collect the children
-				d = append(d, child)
+				drm = append(drm, child)
 			}
 		}
 	}
-	return d
+
+	return drm
 }
 
 // Ancestors returns all reachable(direct or indirect) parent terms. It uses
-// BFS algorithm
-func (g *graph) Ancestors(id NodeID) []Term {
+// BFS algorithm.
+func (g *graph) Ancestors(idn NodeID) []Term {
 	// slice of ancestors
-	var a []Term
-	//make sure the node exists in the graph
-	if _, ok := g.nodes[id]; !ok {
-		return a
+	var atrm []Term
+	// make sure the node exists in the graph
+	if _, ok := g.nodes[idn]; !ok {
+		return atrm
 	}
 	// queue of terms
-	var q []NodeID
+	qid := make([]NodeID, 0)
 	// keep track of visited terms
 	visited := make(map[NodeID]bool)
 
-	//queue the first item
-	q = append(q, id)
-	//mark it visited
-	visited[id] = true
-	for len(q) > 0 {
-		//dequeue
-		nid := q[len(q)-1]
-		q = q[:len(q)-1]
+	// queue the first item
+	qid = append(qid, idn)
+	// mark it visited
+	visited[idn] = true
+	for len(qid) > 0 {
+		// dequeue
+		nid := qid[len(qid)-1]
+		qid = qid[:len(qid)-1]
 		// get children of this term
 		for _, parent := range g.Parents(nid) {
 			// queue if not visited
 			if _, ok := visited[parent.ID()]; !ok {
-				q = append(q, parent.ID())
+				qid = append(qid, parent.ID())
 				// mark them visited
 				visited[parent.ID()] = true
 				// collect the children
-				a = append(a, parent)
+				atrm = append(atrm, parent)
 			}
 		}
 	}
-	return a
+
+	return atrm
 }
 
-// ExistsTerm checks for existence of a term
+// ExistsTerm checks for existence of a term.
 func (g *graph) ExistsTerm(id NodeID) bool {
 	_, ok := g.nodes[id]
+
 	return ok
 }
 
-// GetTerm fetches an existing term
+// GetTerm fetches an existing term.
 func (g *graph) GetTerm(id NodeID) Term {
 	return g.nodes[id]
 }
 
 // GetRelationship fetches relationship(edge) between parent(object) and
-// children(subject)
+// children(subject).
 func (g *graph) GetRelationship(obj NodeID, subj NodeID) (rel Relationship) {
 	if v, ok := g.edgesDown[obj]; ok {
 		if r, ok := v[subj]; ok {
 			return r
 		}
 	}
+
 	return rel
 }
 
-// AddTerm add a new Term to the graph overwriting any existing one
+// AddTerm add a new Term to the graph overwriting any existing one.
 func (g *graph) AddTerm(t Term) {
 	g.nodes[t.ID()] = t
 }
 
 // AddRelationship creates relationship between terms, it overrides the
-// existing terms and relationship
+// existing terms and relationship.
 func (g *graph) AddRelationship(obj, subj, pred Term) error {
 	g.nodes[obj.ID()] = obj
 	g.nodes[subj.ID()] = subj
@@ -304,10 +312,11 @@ func (g *graph) AddRelationship(obj, subj, pred Term) error {
 	} else {
 		g.edgesUp[subj.ID()] = map[NodeID]Relationship{obj.ID(): rel}
 	}
+
 	return nil
 }
 
-// AddRelationshipWithID creates relationship between existing terms
+// AddRelationshipWithID creates relationship between existing terms.
 func (g *graph) AddRelationshipWithID(obj, subj, pred NodeID) error {
 	if _, ok := g.nodes[obj]; !ok {
 		return fmt.Errorf("object node id %s does not exist", obj)
@@ -335,15 +344,17 @@ func (g *graph) AddRelationshipWithID(obj, subj, pred NodeID) error {
 	} else {
 		g.edgesUp[subj] = map[NodeID]Relationship{obj: rel}
 	}
+
 	return nil
 }
 
 func (g *graph) getTerms(id NodeID, edges map[NodeID]map[NodeID]Relationship) []Term {
-	var t []Term
+	trm := make([]Term, 0)
 	if _, ok := g.nodes[id]; ok {
 		for nid := range edges[id] {
-			t = append(t, g.nodes[nid])
+			trm = append(trm, g.nodes[nid])
 		}
 	}
-	return t
+
+	return trm
 }
