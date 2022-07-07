@@ -24,11 +24,16 @@ func getReader() (io.Reader, error) {
 	if err != nil {
 		return buff, fmt.Errorf("unable to get current dir %s", err)
 	}
-	return os.Open(
+	rdr, err := os.Open(
 		filepath.Join(
 			filepath.Dir(dir), "testdata", "so.json",
 		),
 	)
+	if err != nil {
+		return rdr, fmt.Errorf("error in opening file %s", err)
+	}
+
+	return rdr, nil
 }
 
 func TestGraphProperties(t *testing.T) {
