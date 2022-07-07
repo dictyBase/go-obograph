@@ -2,6 +2,7 @@ package arangodb
 
 import (
 	"context"
+	"fmt"
 
 	driver "github.com/arangodb/go-driver"
 	manager "github.com/dictyBase/arangomanager"
@@ -12,28 +13,28 @@ type OntoCollection struct {
 	Rel   driver.Collection
 	Cv    driver.Collection
 	Obog  driver.Graph
-	db    *manager.Database
+	dbh   *manager.Database
 	collP *CollectionParams
 }
 
 func (oc *OntoCollection) docCollection() error {
-	db := oc.db
+	dbh := oc.dbh
 	collP := oc.collP
-	termc, err := db.FindOrCreateCollection(
+	termc, err := dbh.FindOrCreateCollection(
 		collP.Term,
 		&driver.CreateCollectionOptions{},
 	)
 	if err != nil {
 		return err
 	}
-	relc, err := db.FindOrCreateCollection(
+	relc, err := dbh.FindOrCreateCollection(
 		collP.Relationship,
 		&driver.CreateCollectionOptions{Type: driver.CollectionTypeEdge},
 	)
 	if err != nil {
 		return err
 	}
-	graphc, err := db.FindOrCreateCollection(
+	graphc, err := dbh.FindOrCreateCollection(
 		collP.GraphInfo,
 		&driver.CreateCollectionOptions{},
 	)
@@ -43,13 +44,14 @@ func (oc *OntoCollection) docCollection() error {
 	oc.Term = termc
 	oc.Rel = relc
 	oc.Cv = graphc
+
 	return nil
 }
 
 func (oc *OntoCollection) graphAndIndex() error {
-	db := oc.db
+	dbh := oc.dbh
 	collP := oc.collP
-	obog, err := db.FindOrCreateGraph(
+	obog, err := dbh.FindOrCreateGraph(
 		collP.OboGraph,
 		[]driver.EdgeDefinition{{
 			Collection: oc.Rel.Name(),
@@ -66,19 +68,24 @@ func (oc *OntoCollection) graphAndIndex() error {
 			Name:         "label-idx",
 			InBackground: true,
 		})
+	if err != nil {
+		return fmt.Errorf("error in creating index %s", err)
+	}
 	oc.Obog = obog
+
 	return nil
 }
 
 // CreateCollection creates all the necessary collections, graph and index required
-// for persisting obojson ontology in arangodb
-func CreateCollection(db *manager.Database, collP *CollectionParams) (*OntoCollection, error) {
-	oc := &OntoCollection{db: db, collP: collP}
-	if err := oc.docCollection(); err != nil {
-		return oc, err
+// for persisting obojson ontology in arangodb.
+func CreateCollection(dbh *manager.Database, collP *CollectionParams) (*OntoCollection, error) {
+	ocn := &OntoCollection{dbh: dbh, collP: collP}
+	if err := ocn.docCollection(); err != nil {
+		return ocn, err
 	}
-	if err := oc.graphAndIndex(); err != nil {
-		return oc, err
+	if err := ocn.graphAndIndex(); err != nil {
+		return ocn, err
 	}
-	return oc, nil
+
+	return ocn, nil
 }

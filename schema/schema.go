@@ -2,12 +2,12 @@
 // format
 package schema
 
-// OboJSON models the entire JSON schema of OBO Graph
+// OboJSON models the entire JSON schema of OBO Graph.
 type OboJSON struct {
 	Graphs []*OboJSONGraph `json:"graphs"`
 }
 
-// OboJSONGraph models the graph section of OBO graph
+// OboJSONGraph models the graph section of OBO graph.
 type OboJSONGraph struct {
 	ID                  string        `json:"id"`
 	Edges               []*JSONEdge   `json:"edges"`
@@ -29,7 +29,7 @@ type OboJSONGraph struct {
 	} `json:"logicalDefinitionAxioms"`
 }
 
-// JSONMeta models the meta section of OBO graph
+// JSONMeta models the meta section of OBO graph.
 type JSONMeta struct {
 	BasicPropertyValues []*JSONProperty `json:"basicPropertyValues"`
 	Synonyms            []*JSONSynonym  `json:"synonyms"`
@@ -42,20 +42,20 @@ type JSONMeta struct {
 	} `json:"xrefs"`
 }
 
-// JSONDefintion models the definition subsection of meta section
+// JSONDefintion models the definition subsection of meta section.
 type JSONDefintion struct {
 	Val   string   `json:"val"`
 	Xrefs []string `json:"xrefs"`
 }
 
-// JSONEdge models the edges of OBO graph
+// JSONEdge models the edges of OBO graph.
 type JSONEdge struct {
 	Obj  string `json:"obj"`
 	Pred string `json:"pred"`
 	Sub  string `json:"sub"`
 }
 
-// JSONNode models the nodes of OBO graph
+// JSONNode models the nodes of OBO graph.
 type JSONNode struct {
 	ID       string    `json:"id"`
 	Lbl      string    `json:"lbl"`
@@ -63,14 +63,14 @@ type JSONNode struct {
 	JSONType string    `json:"type"`
 }
 
-// JSONSynonym models the synonyms of the nodes
+// JSONSynonym models the synonyms of the nodes.
 type JSONSynonym struct {
 	Pred  string   `json:"pred"`
 	Val   string   `json:"val"`
 	Xrefs []string `json:"xrefs"`
 }
 
-// JSONProperty models the properties of the nodes
+// JSONProperty models the properties of the nodes.
 type JSONProperty struct {
 	Pred string `json:"pred"`
 	Val  string `json:"val"`

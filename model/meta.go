@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-// MetaOptions is a container for various types of metadata
+// MetaOptions is a container for various types of metadata.
 type MetaOptions struct {
 	Definition *Definition
 	BaseProps  []*BasicPropertyValue
@@ -17,81 +17,88 @@ type MetaOptions struct {
 	Version    string
 }
 
-// Meta is a container for hosting sets of PropertyValue objects
+// Meta is a container for hosting sets of PropertyValue objects.
 type Meta struct {
 	opt *MetaOptions
 }
 
-// NewMeta is a constructor for Meta
+// NewMeta is a constructor for Meta.
 func NewMeta(opt *MetaOptions) *Meta {
 	return &Meta{opt}
 }
 
-// BasicPropertyValues are the collection of meta properties
+// BasicPropertyValues are the collection of meta properties.
 func (m *Meta) BasicPropertyValues() []*BasicPropertyValue {
 	var b []*BasicPropertyValue
 	if len(m.opt.BaseProps) > 0 {
 		return m.opt.BaseProps
 	}
+
 	return b
 }
 
-// Comments are unstructured text information
+// Comments are unstructured text information.
 func (m *Meta) Comments() []string {
 	if len(m.opt.Comments) > 0 {
 		return m.opt.Comments
 	}
-	var c []string
+	var comm []string
 	for _, p := range m.BasicPropertyValues() {
 		if strings.HasSuffix(p.Pred(), "#comment") {
-			c = append(c, p.Value())
+			comm = append(comm, p.Value())
 		}
 	}
-	return c
+
+	return comm
 }
 
-// Definition is node definition
+// Definition is node definition.
 func (m *Meta) Definition() *Definition {
 	var d *Definition
 	if m.opt.Definition != nil {
 		return m.opt.Definition
 	}
+
 	return d
 }
 
-// Synonyms are the synonyms of the nodes
+// Synonyms are the synonyms of the nodes.
 func (m *Meta) Synonyms() []*Synonym {
 	var s []*Synonym
 	if len(m.opt.Synonyms) > 0 {
 		return m.opt.Synonyms
 	}
+
 	return s
 }
 
-// Subsets are the subset values of the meta properties
+// Subsets are the subset values of the meta properties.
 func (m *Meta) Subsets() []string {
 	var s []string
 	if len(m.opt.Subsets) > 0 {
 		return m.opt.Subsets
 	}
+
 	return s
 }
 
-// Xrefs are slice of all xrefs
+// Xrefs are slice of all xrefs.
 func (m *Meta) Xrefs() []*Xref {
 	var x []*Xref
 	if len(m.opt.Xrefs) > 0 {
 		return m.opt.Xrefs
 	}
+
 	return x
 }
 
-// XrefsValues are values of all the xrefs
+// XrefsValues are values of all the xrefs.
 func (m *Meta) XrefsValues() []string {
-	var x []string
+	x := make([]string, 0)
 	for _, v := range m.Xrefs() {
 		x = append(x, v.Value())
 	}
+
 	return x
 }
 
@@ -101,6 +108,7 @@ func (m *Meta) Version() string {
 	if len(m.opt.Version) > 0 {
 		return m.opt.Version
 	}
+
 	return v
 }
 
@@ -115,5 +123,6 @@ func (m *Meta) Namespace() string {
 			return p.Value()
 		}
 	}
+
 	return ""
 }
