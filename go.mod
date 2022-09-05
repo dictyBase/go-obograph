@@ -7,7 +7,7 @@ require (
 	github.com/repeale/fp-go v0.6.0
 	github.com/sirupsen/logrus v1.8.1
 	github.com/stretchr/testify v1.8.0
-	github.com/urfave/cli v1.22.9
+	github.com/urfave/cli v1.22.10
 )
 
 require (
