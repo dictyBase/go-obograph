@@ -18,9 +18,9 @@ jobs:
           - 8529/tcp
     steps:
       - name: set up golang
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v4
         with:
-            go-version: 1.18
+            go-version: 1.20.4
       - name: check out code
         uses: actions/checkout@v3
       - name: unit test
@@ -32,6 +32,6 @@ jobs:
           ARANGO_PORT: ${{ job.services.arangodb.ports[8529] }}
           GOPROXY: https://proxy.golang.org
       - name: upload coverage to codecov
-        uses: codecov/codecov-action@v1.5.2
+        uses: codecov/codecov-action@v3
         with:
             file: ./profile.cov
