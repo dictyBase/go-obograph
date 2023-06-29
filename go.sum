@@ -15,8 +15,8 @@ github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/dchest/uniuri v0.0.0-20160212164326-8902c56451e9/go.mod h1:GgB8SF9nRG+GqaDtLcwJZsQFhcogVCJ79j4EdT0c2V4=
 github.com/dgrijalva/jwt-go v3.2.0+incompatible/go.mod h1:E3ru+11k8xSBh+hMPgOLZmtrrCbhqsmaPHjLKYnJCaQ=
-github.com/dictyBase/arangomanager v0.3.2 h1:hySU7m8IUS9HBohaD/hvkIdd6IBOVYQoZiPOt0arJVQ=
-github.com/dictyBase/arangomanager v0.3.2/go.mod h1:yCkEK9CFeGw8japDI34FWO5r0ymrH6FM2lL5Z3I3WsA=
+github.com/dictyBase/arangomanager v0.3.4 h1:4NE4KwdycZmBmtdeCxjAvaPlFztRm/UlnQw74E1lW4g=
+github.com/dictyBase/arangomanager v0.3.4/go.mod h1:yCkEK9CFeGw8japDI34FWO5r0ymrH6FM2lL5Z3I3WsA=
 github.com/emirpasic/gods v1.18.1/go.mod h1:8tpGGwCnJ5H4r6BWwaV6OrWmMoPhUl5jm/FMNAnJvWQ=
 github.com/fatih/structs v1.1.0 h1:Q7juDM0QtcnhCpeyLGQKyg4TOIghuNXrkL32pHAUMxo=
 github.com/fatih/structs v1.1.0/go.mod h1:9NiDSp5zOcgEDl+j00MP/WkGVPOlPRLejGD8Ga6PJ7M=
