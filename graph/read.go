@@ -127,14 +127,14 @@ func buildTermMeta(jsm *schema.JSONMeta) *model.MetaOptions {
 	meta := buildBaseMeta(jsm)
 	if jsm.Synonyms != nil && len(jsm.Synonyms) > 0 {
 		var syn []*model.Synonym
-		for _, js := range jsm.Synonyms {
-			if len(js.Xrefs) > 0 {
+		for _, jsyn := range jsm.Synonyms {
+			if len(jsyn.Xrefs) > 0 {
 				syn = append(
 					syn,
-					model.NewSynonymWithRefs(js.Pred, js.Val, js.Xrefs),
+					model.NewSynonymWithRefs(jsyn.Pred, jsyn.Val, jsyn.Xrefs),
 				)
 			} else {
-				syn = append(syn, model.NewSynonym(js.Pred, js.Val))
+				syn = append(syn, model.NewSynonym(jsyn.Pred, jsyn.Val))
 			}
 		}
 		meta.Synonyms = syn
