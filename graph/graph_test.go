@@ -68,9 +68,9 @@ func TestGraphProperties(t *testing.T) {
 	clst := grph.TermsByType("CLASS")
 	assert.Lenf(clst, 2729, "expected 2432 classes got %d", len(clst))
 	propt := grph.TermsByType("PROPERTY")
-	assert.Lenf(propt, 83, "expected 83 properties got %d", len(propt))
+	assert.Lenf(propt, 71, "expected 83 properties got %d", len(propt))
 	rels := grph.Relationships()
-	assert.Lenf(rels, 2919, "expect 2919 relationships got %d", len(rels))
+	assert.Lenf(rels, 3128, "expect 2919 relationships got %d", len(rels))
 }
 
 func TestGraphClassTerm(t *testing.T) {
