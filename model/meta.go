@@ -127,3 +127,8 @@ func (m *Meta) Namespace() string {
 
 	return ""
 }
+
+// IsDeprecated returns a boolean indicating whether the meta information is deprecated.
+func (m *Meta) IsDeprecated() bool {
+	return m.opt.Deprecated
+}
