@@ -129,7 +129,10 @@ func buildTermMeta(jsm *schema.JSONMeta) *model.MetaOptions {
 		var syn []*model.Synonym
 		for _, js := range jsm.Synonyms {
 			if len(js.Xrefs) > 0 {
-				syn = append(syn, model.NewSynonymWithRefs(js.Pred, js.Val, js.Xrefs))
+				syn = append(
+					syn,
+					model.NewSynonymWithRefs(js.Pred, js.Val, js.Xrefs),
+				)
 			} else {
 				syn = append(syn, model.NewSynonym(js.Pred, js.Val))
 			}
@@ -168,6 +171,7 @@ func buildBaseMeta(jsm *schema.JSONMeta) *model.MetaOptions {
 		}
 		mop.Xrefs = xref
 	}
+	mop.Deprecated = jsm.Deprecated
 
 	return mop
 }
