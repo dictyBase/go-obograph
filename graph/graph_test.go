@@ -73,7 +73,7 @@ func TestGraphProperties(t *testing.T) {
 	assert.Lenf(rels, 3128, "expect 2919 relationships got %d", len(rels))
 }
 
-func TestGraphClassTerm(t *testing.T) {
+func TestGraphClassTerm(t *testing.T) { //nolint:funlen
 	t.Parallel()
 	assert := require.New(t)
 	rdr, err := getReader()
