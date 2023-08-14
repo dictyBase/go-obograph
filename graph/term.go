@@ -67,7 +67,7 @@ func (n *node) IsDeprecated() bool {
 		}
 	}
 
-	return false
+	return n.meta.IsDeprecated()
 }
 
 // HasMeta check for presence of any metadata.
