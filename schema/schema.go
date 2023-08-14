@@ -37,6 +37,7 @@ type JSONMeta struct {
 	Comments            []string        `json:"comments"`
 	Definition          *JSONDefintion  `json:"definition"`
 	Version             string          `json:"version"`
+	Deprecated          bool            `json:"deprecated"`
 	Xrefs               []struct {
 		Val string `json:"val"`
 	} `json:"xrefs"`
