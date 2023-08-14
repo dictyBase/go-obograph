@@ -15,6 +15,7 @@ type MetaOptions struct {
 	Comments   []string
 	Subsets    []string
 	Version    string
+	Deprecated bool
 }
 
 // Meta is a container for hosting sets of PropertyValue objects.
