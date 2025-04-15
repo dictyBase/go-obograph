@@ -2,7 +2,7 @@ module github.com/dictyBase/go-obograph
 
 require (
 	github.com/arangodb/go-driver v1.6.6
-	github.com/dictyBase/arangomanager v0.4.0
+	github.com/dictyBase/arangomanager v0.7.0
 	github.com/go-playground/validator/v10 v10.26.0
 	github.com/repeale/fp-go v0.11.1
 	github.com/sirupsen/logrus v1.9.3
@@ -18,11 +18,12 @@ require (
 	github.com/gabriel-vasile/mimetype v1.4.8 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
+	github.com/kr/text v0.2.0 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
-	golang.org/x/crypto v0.33.0 // indirect
+	golang.org/x/crypto v0.35.0 // indirect
 	golang.org/x/net v0.34.0 // indirect
 	golang.org/x/sys v0.30.0 // indirect
 	golang.org/x/text v0.22.0 // indirect
