@@ -10,6 +10,8 @@ import (
 type NodeID string
 
 // OboGraph is an interface for accessing OBO Graphs.
+//
+//nolint:interfacebloat
 type OboGraph interface {
 	// IRI represents a stable URL for locating the source OWL formatted file
 	IRI() string
