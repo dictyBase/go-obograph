@@ -8,6 +8,7 @@ import (
 // from the IRI values of graph and nodes.
 func ExtractID(s string) string {
 	parts := strings.Split(s, "/")
+
 	lpp := parts[len(parts)-1]
 	if strings.Contains(lpp, "#") {
 		mparts := strings.Split(lpp, "#")

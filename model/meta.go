@@ -31,6 +31,7 @@ func NewMeta(opt *MetaOptions) *Meta {
 // BasicPropertyValues are the collection of meta properties.
 func (m *Meta) BasicPropertyValues() []*BasicPropertyValue {
 	var b []*BasicPropertyValue
+
 	if len(m.opt.BaseProps) > 0 {
 		return m.opt.BaseProps
 	}
@@ -43,7 +44,9 @@ func (m *Meta) Comments() []string {
 	if len(m.opt.Comments) > 0 {
 		return m.opt.Comments
 	}
+
 	var comm []string
+
 	for _, p := range m.BasicPropertyValues() {
 		if strings.HasSuffix(p.Pred(), "#comment") {
 			comm = append(comm, p.Value())
@@ -56,6 +59,7 @@ func (m *Meta) Comments() []string {
 // Definition is node definition.
 func (m *Meta) Definition() *Definition {
 	var d *Definition
+
 	if m.opt.Definition != nil {
 		return m.opt.Definition
 	}
@@ -66,6 +70,7 @@ func (m *Meta) Definition() *Definition {
 // Synonyms are the synonyms of the nodes.
 func (m *Meta) Synonyms() []*Synonym {
 	var s []*Synonym
+
 	if len(m.opt.Synonyms) > 0 {
 		return m.opt.Synonyms
 	}
@@ -76,6 +81,7 @@ func (m *Meta) Synonyms() []*Synonym {
 // Subsets are the subset values of the meta properties.
 func (m *Meta) Subsets() []string {
 	var s []string
+
 	if len(m.opt.Subsets) > 0 {
 		return m.opt.Subsets
 	}
@@ -86,6 +92,7 @@ func (m *Meta) Subsets() []string {
 // Xrefs are slice of all xrefs.
 func (m *Meta) Xrefs() []*Xref {
 	var x []*Xref
+
 	if len(m.opt.Xrefs) > 0 {
 		return m.opt.Xrefs
 	}
@@ -106,6 +113,7 @@ func (m *Meta) XrefsValues() []string {
 // Version the ontology version, will be unset for nodes and edges.
 func (m *Meta) Version() string {
 	var v string
+
 	if len(m.opt.Version) > 0 {
 		return m.opt.Version
 	}
@@ -120,6 +128,7 @@ func (m *Meta) Namespace() string {
 		if strings.HasSuffix(p.Pred(), "#hasOBONamespace") {
 			return p.Value()
 		}
+
 		if strings.HasSuffix(p.Pred(), "#default-namespace") {
 			return p.Value()
 		}

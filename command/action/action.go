@@ -41,15 +41,19 @@ func saveNewGraph(dsa storage.DataSource, grph graph.OboGraph, logger *logrus.En
 	if err != nil {
 		return fmt.Errorf("error in saving graph %s", err)
 	}
+
 	nst, err := dsa.SaveTerms(grph)
 	if err != nil {
 		return fmt.Errorf("error in saving terms %s", err)
 	}
+
 	logger.Infof("saved %d terms", nst)
+
 	nsr, err := dsa.SaveRelationships(grph)
 	if err != nil {
 		return fmt.Errorf("error in saving relationships %s", err)
 	}
+
 	logger.Infof("saved %d relationships", nsr)
 
 	return nil
@@ -59,18 +63,22 @@ func saveExistentGraph(dsa storage.DataSource, grph graph.OboGraph, logger *logr
 	if err := dsa.UpdateOboGraphInfo(grph); err != nil {
 		return fmt.Errorf("error in updating graph information %s", err)
 	}
+
 	stats, err := dsa.SaveOrUpdateTerms(grph)
 	if err != nil {
 		return fmt.Errorf("error in updating terms %s", err)
 	}
+
 	logger.Infof(
 		"saved::%d terms updated::%d terms obsoleted::%d terms",
 		stats.Created, stats.Updated, stats.Deleted,
 	)
+
 	urs, err := dsa.SaveNewRelationships(grph)
 	if err != nil {
 		return fmt.Errorf("error in saving relationships %s", err)
 	}
+
 	logger.Infof("updated %d relationships", urs)
 
 	return nil
@@ -82,6 +90,7 @@ func LoadOntologies(clt *cli.Context) error {
 	if err != nil {
 		return cli.NewExitError(err.Error(), exitCode)
 	}
+
 	logger := getLogger(clt)
 	for _, objs := range clt.StringSlice("obojson") {
 		rdr, err := os.Open(objs)
@@ -92,6 +101,7 @@ func LoadOntologies(clt *cli.Context) error {
 			)
 		}
 		defer rdr.Close()
+
 		grph, err := graph.BuildGraph(rdr)
 		if err != nil {
 			return cli.NewExitError(
@@ -99,15 +109,19 @@ func LoadOntologies(clt *cli.Context) error {
 				exitCode,
 			)
 		}
+
 		if !dsa.ExistsOboGraph(grph) {
 			logger.Infof("obograph %s does not exist, have to be loaded", objs)
+
 			if err := saveNewGraph(dsa, grph, logger); err != nil {
 				return cli.NewExitError(err.Error(), exitCode)
 			}
 
 			continue
 		}
+
 		logger.Infof("obograph %s exist, have to be updated", objs)
+
 		if err := saveExistentGraph(dsa, grph, logger); err != nil {
 			return cli.NewExitError(err.Error(), exitCode)
 		}
@@ -119,6 +133,7 @@ func LoadOntologies(clt *cli.Context) error {
 func getLogger(clt *cli.Context) *logrus.Entry {
 	log := logrus.New()
 	log.Out = os.Stderr
+
 	switch clt.GlobalString("log-format") {
 	case "text":
 		log.Formatter = &logrus.TextFormatter{
@@ -129,6 +144,7 @@ func getLogger(clt *cli.Context) *logrus.Entry {
 			TimestampFormat: "02/Jan/2006:15:04:05",
 		}
 	}
+
 	l := clt.GlobalString("log-level")
 	switch l {
 	case "debug":

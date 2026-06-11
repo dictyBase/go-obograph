@@ -82,6 +82,7 @@ func (s *Synonym) IsExact() bool {
 // Scope returns OBO-style scope of synonym.
 func (s *Synonym) Scope() string {
 	scope := "RELATED"
+
 	switch s.Pred() {
 	case "hasExactSynonym":
 		scope = "EXACT"
