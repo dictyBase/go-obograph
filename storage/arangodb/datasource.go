@@ -206,7 +206,7 @@ func (a *arangoSource) SaveRelationships(g graph.OboGraph) (int, error) {
 	return int(stat.Created), nil
 }
 
-func (a *arangoSource) UpdateTerms(grph graph.OboGraph) (int, error) {
+func (a *arangoSource) UpdateTerms(_ graph.OboGraph) (int, error) {
 	return 0, nil
 }
 
@@ -251,34 +251,6 @@ func (a *arangoSource) SaveOrUpdateTerms(grph graph.OboGraph) (*storage.Stats, e
 	return a.manageTerms(grph, tmpColl)
 }
 
-func (a *arangoSource) manageTerms(
-	grph graph.OboGraph,
-	tmpColl driver.AccessTarget,
-) (*storage.Stats, error) {
-	stats := new(storage.Stats)
-
-	ucount, err := a.editTerms(tupdt, grph, tmpColl)
-	if err != nil {
-		return stats, err
-	}
-
-	icount, err := a.editTerms(tinst, grph, tmpColl)
-	if err != nil {
-		return stats, err
-	}
-
-	ocount, err := a.editTerms(tdelt, grph, tmpColl)
-	if err != nil {
-		return stats, err
-	}
-
-	stats.Created = icount
-	stats.Updated = ucount
-	stats.Deleted = ocount
-
-	return stats, nil
-}
-
 // SaveNewRelationships saves only the new relationships that are absent in the storage.
 func (a *arangoSource) SaveNewRelationships(grph graph.OboGraph) (int, error) {
 	ncount := 0
@@ -306,6 +278,34 @@ func (a *arangoSource) SaveNewRelationships(grph graph.OboGraph) (int, error) {
 	}
 
 	return ncount, nil
+}
+
+func (a *arangoSource) manageTerms(
+	grph graph.OboGraph,
+	tmpColl driver.AccessTarget,
+) (*storage.Stats, error) {
+	stats := new(storage.Stats)
+
+	ucount, err := a.editTerms(tupdt, grph, tmpColl)
+	if err != nil {
+		return stats, err
+	}
+
+	icount, err := a.editTerms(tinst, grph, tmpColl)
+	if err != nil {
+		return stats, err
+	}
+
+	ocount, err := a.editTerms(tdelt, grph, tmpColl)
+	if err != nil {
+		return stats, err
+	}
+
+	stats.Created = icount
+	stats.Updated = ucount
+	stats.Deleted = ocount
+
+	return stats, nil
 }
 
 func (a *arangoSource) todbGraphMeta(grph graph.OboGraph) *dbGraphMeta {
