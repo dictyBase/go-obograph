@@ -5,29 +5,40 @@ import (
 	"github.com/urfave/cli"
 )
 
+const (
+	termCollectionFlag      = "term-collection"
+	relCollectionFlag       = "rel-collection"
+	cvCollectionFlag        = "cv-collection"
+	obographFlag            = "obograph"
+	cvtermValue             = "cvterm"
+	cvtermRelationshipValue = "cvterm_relationship"
+	cvValue                 = "cv"
+	obographValue           = "obograph"
+)
+
 // OntologyFlagsOnly returns a slice of cli.Flag objects representing command line
 // options for an ontology-related CLI application.
 func OntologyFlagsOnly() []cli.Flag {
 	return []cli.Flag{
 		cli.StringFlag{
-			Name:  "term-collection",
+			Name:  termCollectionFlag,
 			Usage: "arangodb collection for storing ontoloy terms",
-			Value: "cvterm",
+			Value: cvtermValue,
 		},
 		cli.StringFlag{
-			Name:  "rel-collection",
+			Name:  relCollectionFlag,
 			Usage: "arangodb collection for storing cvterm relationships",
-			Value: "cvterm_relationship",
+			Value: cvtermRelationshipValue,
 		},
 		cli.StringFlag{
-			Name:  "cv-collection",
+			Name:  cvCollectionFlag,
 			Usage: "arangodb collection for storing ontology information",
-			Value: "cv",
+			Value: cvValue,
 		},
 		cli.StringFlag{
-			Name:  "obograph",
+			Name:  obographFlag,
 			Usage: "arangodb named graph for managing ontology graph",
-			Value: "obograph",
+			Value: obographValue,
 		},
 	}
 }
@@ -38,24 +49,24 @@ func OntologyFlags() []cli.Flag {
 	return append(
 		[]cli.Flag{
 			cli.StringFlag{
-				Name:  "term-collection",
+				Name:  termCollectionFlag,
 				Usage: "arangodb collection for storing ontoloy terms",
-				Value: "cvterm",
+				Value: cvtermValue,
 			},
 			cli.StringFlag{
-				Name:  "rel-collection",
+				Name:  relCollectionFlag,
 				Usage: "arangodb collection for storing cvterm relationships",
-				Value: "cvterm_relationship",
+				Value: cvtermRelationshipValue,
 			},
 			cli.StringFlag{
-				Name:  "cv-collection",
+				Name:  cvCollectionFlag,
 				Usage: "arangodb collection for storing ontology information",
-				Value: "cv",
+				Value: cvValue,
 			},
 			cli.StringFlag{
-				Name:  "obograph",
+				Name:  obographFlag,
 				Usage: "arangodb named graph for managing ontology graph",
-				Value: "obograph",
+				Value: obographValue,
 			},
 			cli.StringSliceFlag{
 				Name:     "obojson,j",

@@ -9,19 +9,19 @@ type OboJSON struct {
 
 // OboJSONGraph models the graph section of OBO graph.
 type OboJSONGraph struct {
-	ID                  string        `json:"id"`
-	Edges               []*JSONEdge   `json:"edges"`
-	Nodes               []*JSONNode   `json:"nodes"`
-	Meta                *JSONMeta     `json:"meta"`
-	EquivalentNodesSets []interface{} `json:"equivalentNodesSets"`
-	DomainRangeAxioms   []interface{} `json:"domainRangeAxioms"`
+	ID                  string      `json:"id"`
+	Edges               []*JSONEdge `json:"edges"`
+	Nodes               []*JSONNode `json:"nodes"`
+	Meta                *JSONMeta   `json:"meta"`
+	EquivalentNodesSets []any       `json:"equivalentNodesSets"`
+	DomainRangeAxioms   []any       `json:"domainRangeAxioms"`
 	PropertyChainAxioms []struct {
-		ChainPredicateIds []string `json:"chainPredicateIds"`
+		ChainPredicateIDs []string `json:"chainPredicateIds"`
 		PredicateID       string   `json:"predicateId"`
 	} `json:"propertyChainAxioms"`
 	LogicalDefinitionAxioms []struct {
 		DefinedClassID string   `json:"definedClassId"`
-		GenusIds       []string `json:"genusIds"`
+		GenusIDs       []string `json:"genusIds"`
 		Restrictions   []struct {
 			FillerID   string `json:"fillerId"`
 			PropertyID string `json:"propertyId"`

@@ -5,7 +5,7 @@ require (
 	github.com/dictyBase/arangomanager v0.4.0
 	github.com/go-playground/validator/v10 v10.26.0
 	github.com/repeale/fp-go v0.11.1
-	github.com/sirupsen/logrus v1.9.3
+	github.com/sirupsen/logrus v1.9.4
 	github.com/stretchr/testify v1.10.0
 	github.com/urfave/cli v1.22.17
 )
@@ -29,4 +29,4 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
-go 1.18
+go 1.26
