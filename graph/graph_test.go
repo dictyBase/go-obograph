@@ -13,17 +13,28 @@ import (
 )
 
 const (
-	SEQ = "sequence"
+	SEQ       = "sequence"
+	SO0000548 = "SO_0000548"
+	SO0000455 = "SO_0000455"
+	SO0000451 = "SO_0000451"
+	SO0000693 = "SO_0000693"
+	SO0000711 = "SO_0000711"
+	SO0000712 = "SO_0000712"
+	SO0000698 = "SO_0000698"
+	SO0000697 = "SO_0000697"
+	SO0000710 = "SO_0000710"
 )
 
 var termPipe = gofn.Map(termToID)
 
 func getReader() (io.Reader, error) {
 	buff := bytes.NewBuffer(make([]byte, 0))
+
 	dir, err := os.Getwd()
 	if err != nil {
 		return buff, fmt.Errorf("unable to get current dir %s", err)
 	}
+
 	rdr, err := os.Open(
 		filepath.Join(
 			filepath.Dir(dir), "testdata", "so.json",
@@ -43,10 +54,9 @@ func TestGraphProperties(t *testing.T) {
 	assert.NoError(err, "expect no error from the reader")
 	grph, err := BuildGraph(rdr)
 	assert.NoError(err, "expect no error from building the graph")
-	assert.Equal(grph.ID(), "so.owl", "expect graph Id to match")
+	assert.Equal("so.owl", grph.ID(), "expect graph Id to match")
 	assert.Equal(
-		grph.IRI(),
-		"http://purl.obolibrary.org/obo/so.owl",
+		"http://purl.obolibrary.org/obo/so.owl", grph.IRI(),
 		"expect to match graph IRI",
 	)
 
@@ -60,15 +70,17 @@ func TestGraphProperties(t *testing.T) {
 		len(mta.BasicPropertyValues()),
 	)
 	assert.Equalf(
-		mta.Namespace(),
-		"sequence",
+		"sequence", mta.Namespace(),
 		"expected sequence namespace got %s",
 		mta.Namespace(),
 	)
+
 	clst := grph.TermsByType("CLASS")
 	assert.Lenf(clst, 2729, "expected 2432 classes got %d", len(clst))
+
 	propt := grph.TermsByType("PROPERTY")
 	assert.Lenf(propt, 71, "expected 83 properties got %d", len(propt))
+
 	rels := grph.Relationships()
 	assert.Lenf(rels, 3128, "expect 2919 relationships got %d", len(rels))
 }
@@ -80,6 +92,7 @@ func TestGraphClassTerm(t *testing.T) { //nolint:funlen
 	assert.NoError(err, "expect no error from the reader")
 	grph, err := BuildGraph(rdr)
 	assert.NoError(err, "expect no error from building the graph")
+
 	term := "SO_0000340"
 	assert.Truef(grph.ExistsTerm(NodeID(term)), "expect to find term %s", term)
 	cht := grph.GetTerm(NodeID(term))
@@ -91,26 +104,22 @@ func TestGraphClassTerm(t *testing.T) { //nolint:funlen
 		cht.ID(),
 	)
 	assert.Equalf(
-		cht.Label(),
-		"chromosome",
+		"chromosome", cht.Label(),
 		"expect to match chromosome got %s",
 		cht.Label(),
 	)
 	assert.Equalf(
-		cht.RdfType(),
-		"CLASS",
+		"CLASS", cht.RdfType(),
 		"expect to match rdf type CLASS got %s",
 		cht.RdfType(),
 	)
 	assert.Equalf(
-		cht.IRI(),
-		"http://purl.obolibrary.org/obo/SO_0000340",
+		"http://purl.obolibrary.org/obo/SO_0000340", cht.IRI(),
 		"expect to match IRI got %s",
 		cht.IRI(),
 	)
 	assert.Equalf(
-		cht.Meta().Namespace(),
-		"sequence",
+		"sequence", cht.Meta().Namespace(),
 		"expect meta namespace to be sequence got %s",
 		cht.Meta().Namespace(),
 	)
@@ -122,6 +131,7 @@ func TestGraphClassTerm(t *testing.T) { //nolint:funlen
 		len(sub),
 	)
 	assert.Regexpf("SOFA", sub[0], "expect to match SOFA got %s", sub[0])
+
 	pval := cht.Meta().BasicPropertyValues()
 	assert.GreaterOrEqualf(
 		len(pval),
@@ -130,11 +140,11 @@ func TestGraphClassTerm(t *testing.T) { //nolint:funlen
 		len(pval),
 	)
 	assert.Equalf(
-		pval[0].Value(),
-		"sequence",
+		"sequence", pval[0].Value(),
 		"expect the value to be SEQ got %s",
 		pval[0].Value(),
 	)
+
 	cmc := cht.Meta().Comments()
 	assert.GreaterOrEqualf(
 		len(cmc),
@@ -164,16 +174,14 @@ func TestGraphDeprecatedTerm(t *testing.T) {
 		cht.ID(),
 	)
 	assert.Equal(
-		cht.Label(),
-		"mutation_causing_polypeptide_N_terminal_elongation",
+		"mutation_causing_polypeptide_N_terminal_elongation", cht.Label(),
 	)
 	assert.Equalf(
-		cht.RdfType(),
-		"CLASS",
+		"CLASS", cht.RdfType(),
 		"expect to be CLASS but got %s",
 		cht.RdfType(),
 	)
-	assert.Equal(cht.IRI(), "http://purl.obolibrary.org/obo/SO_1000100")
+	assert.Equal("http://purl.obolibrary.org/obo/SO_1000100", cht.IRI())
 	assert.Truef(cht.IsDeprecated(), "expect %s to be deprecated", cht.ID())
 }
 
@@ -197,14 +205,12 @@ func TestGraphPropertyTerm(t *testing.T) {
 		dft.ID(),
 	)
 	assert.Equalf(
-		dft.IRI(),
-		"http://purl.obolibrary.org/obo/so#derives_from",
+		"http://purl.obolibrary.org/obo/so#derives_from", dft.IRI(),
 		"expect to match IRI got %s",
 		dft.IRI(),
 	)
 	assert.Equalf(
-		dft.Meta().Namespace(),
-		"sequence",
+		"sequence", dft.Meta().Namespace(),
 		"expect sequence namespace got %s",
 		dft.Meta().Namespace(),
 	)
@@ -216,6 +222,7 @@ func TestGraphPropertyTerm(t *testing.T) {
 		len(subs),
 	)
 	assert.Regexpf("SOFA", subs[0], "expect SOFA to match got %s", subs[0])
+
 	props := dft.Meta().BasicPropertyValues()
 	assert.GreaterOrEqualf(
 		len(props),
@@ -224,8 +231,7 @@ func TestGraphPropertyTerm(t *testing.T) {
 		len(props),
 	)
 	assert.Equalf(
-		props[0].Value(),
-		"sequence",
+		"sequence", props[0].Value(),
 		"expect sequence value got %s",
 		props[0].Value(),
 	)
@@ -242,6 +248,7 @@ func TestGraphParentTraversal(t *testing.T) {
 	term := "SO_0000336"
 	parents := termPipe(grph.Parents(NodeID(term)))
 	assert.Lenf(parents, 2, "expect 2 parents got %d", len(parents))
+
 	for _, pterm := range []string{"SO_0000704", "SO_0001411"} {
 		assert.Containsf(
 			parents,
@@ -250,8 +257,10 @@ func TestGraphParentTraversal(t *testing.T) {
 			pterm,
 		)
 	}
+
 	ancestors := termPipe(grph.Ancestors(NodeID(term)))
 	assert.Lenf(ancestors, 5, "expect 5 ancestors got %d", len(ancestors))
+
 	for _, aterm := range []string{"SO_0000704", "SO_0001411", "SO_0005855", "SO_0000001", "SO_0000110"} {
 		assert.Containsf(
 			ancestors,
@@ -269,10 +278,12 @@ func TestGraphChildrenTraversal(t *testing.T) {
 	assert.NoError(err, "expect no error from the reader")
 	grph, err := BuildGraph(rdr)
 	assert.NoError(err, "expect no error from building the graph")
+
 	term := "SO_0001217"
 	children := termPipe(grph.Children(NodeID(term)))
 	assert.Lenf(children, 4, "expect 4 children got %d", len(children))
-	for _, cterm := range []string{"SO_0000548", "SO_0000455", "SO_0000451", "SO_0000693"} {
+
+	for _, cterm := range []string{SO0000548, SO0000455, SO0000451, SO0000693} {
 		assert.Containsf(
 			children,
 			NodeID(cterm),
@@ -280,18 +291,20 @@ func TestGraphChildrenTraversal(t *testing.T) {
 			cterm,
 		)
 	}
+
 	desc := termPipe(grph.Descendents(NodeID(term)))
 	assert.Lenf(desc, 9, "expect 9 descendents got %s", len(desc))
+
 	for _, dterm := range []string{
-		"SO_0000548",
-		"SO_0000455",
-		"SO_0000451",
-		"SO_0000693",
-		"SO_0000711",
-		"SO_0000712",
-		"SO_0000698",
-		"SO_0000697",
-		"SO_0000710",
+		SO0000548,
+		SO0000455,
+		SO0000451,
+		SO0000693,
+		SO0000711,
+		SO0000712,
+		SO0000698,
+		SO0000697,
+		SO0000710,
 	} {
 		assert.Containsf(
 			desc,
@@ -300,18 +313,20 @@ func TestGraphChildrenTraversal(t *testing.T) {
 			term,
 		)
 	}
+
 	descDFS := termPipe(grph.DescendentsDFS(NodeID(term)))
 	assert.Lenf(descDFS, 9, "expect 9 descendents got %s", len(descDFS))
+
 	for _, dterm := range []string{
-		"SO_0000548",
-		"SO_0000455",
-		"SO_0000451",
-		"SO_0000693",
-		"SO_0000711",
-		"SO_0000712",
-		"SO_0000698",
-		"SO_0000697",
-		"SO_0000710",
+		SO0000548,
+		SO0000455,
+		SO0000451,
+		SO0000693,
+		SO0000711,
+		SO0000712,
+		SO0000698,
+		SO0000697,
+		SO0000710,
 	} {
 		assert.Containsf(
 			descDFS,
@@ -329,11 +344,13 @@ func TestGraphRelationship(t *testing.T) {
 	assert.NoError(err, "expect no error from the reader")
 	grph, err := BuildGraph(r)
 	assert.NoError(err, "expect no error from building the graph")
+
 	rel := grph.GetRelationship(NodeID("SO_0000704"), NodeID("SO_0001217"))
 	assert.Equalf(
 		rel.Predicate(), NodeID("is_a"),
 		"expected relationship is_a got %s", rel.Predicate(),
 	)
+
 	rel2 := grph.GetRelationship(NodeID("SO_0000010"), NodeID("SO_0001217"))
 	assert.Equalf(
 		rel2.Predicate(), NodeID("has_quality"),
