@@ -17,10 +17,12 @@ import (
 // BuildGraph builds an in memory graph from JSON-encoded obograph reader.
 func BuildGraph(r io.Reader) (OboGraph, error) {
 	ojs := &schema.OboJSON{}
+
 	err := json.NewDecoder(r).Decode(ojs)
 	if err != nil {
 		return &graph{}, fmt.Errorf("error in decoding obograph json %s", err)
 	}
+
 	ogf := ojs.Graphs[0]
 	grph := newOboGraph(
 		model.NewMeta(buildGraphMeta(ogf.Meta)),
@@ -33,9 +35,11 @@ func BuildGraph(r io.Reader) (OboGraph, error) {
 	grph.AddTerm(buildinverseOfTerm())
 	grph.AddTerm(buildTypeTerm())
 	grph.AddTerm(buildtopObjectPropertyTerm())
+
 	for _, jn := range ogf.Nodes {
 		grph.AddTerm(buildTerm(jn))
 	}
+
 	for _, je := range ogf.Edges {
 		err := grph.AddRelationshipWithID(
 			NodeID(internal.ExtractID(je.Obj)),
@@ -125,8 +129,9 @@ func buildIsaTerm() Term {
 
 func buildTermMeta(jsm *schema.JSONMeta) *model.MetaOptions {
 	meta := buildBaseMeta(jsm)
-	if jsm.Synonyms != nil && len(jsm.Synonyms) > 0 {
+	if len(jsm.Synonyms) > 0 {
 		var syn []*model.Synonym
+
 		for _, jsyn := range jsm.Synonyms {
 			if len(jsyn.Xrefs) > 0 {
 				syn = append(
@@ -137,15 +142,18 @@ func buildTermMeta(jsm *schema.JSONMeta) *model.MetaOptions {
 				syn = append(syn, model.NewSynonym(jsyn.Pred, jsyn.Val))
 			}
 		}
+
 		meta.Synonyms = syn
 	}
+
 	if jsm.Definition != nil {
 		meta.Definition = model.NewDefinition(
 			jsm.Definition.Val,
 			jsm.Definition.Xrefs,
 		)
 	}
-	if jsm.Comments != nil && len(jsm.Comments) > 0 {
+
+	if len(jsm.Comments) > 0 {
 		meta.Comments = jsm.Comments
 	}
 
@@ -155,22 +163,28 @@ func buildTermMeta(jsm *schema.JSONMeta) *model.MetaOptions {
 func buildBaseMeta(jsm *schema.JSONMeta) *model.MetaOptions {
 	mop := &model.MetaOptions{}
 	pval := make([]*model.BasicPropertyValue, 0)
-	if jsm.BasicPropertyValues != nil && len(jsm.BasicPropertyValues) > 0 {
+
+	if len(jsm.BasicPropertyValues) > 0 {
 		for _, bp := range jsm.BasicPropertyValues {
 			pval = append(pval, model.NewBasicPropertyValue(bp.Pred, bp.Val))
 		}
+
 		mop.BaseProps = pval
 	}
-	if jsm.Subsets != nil && len(jsm.Subsets) > 0 {
+
+	if len(jsm.Subsets) > 0 {
 		mop.Subsets = jsm.Subsets
 	}
-	if jsm.Xrefs != nil && len(jsm.Xrefs) > 0 {
+
+	if len(jsm.Xrefs) > 0 {
 		var xref []*model.Xref
 		for _, x := range jsm.Xrefs {
 			xref = append(xref, model.NewXref(x.Val))
 		}
+
 		mop.Xrefs = xref
 	}
+
 	mop.Deprecated = jsm.Deprecated
 
 	return mop
