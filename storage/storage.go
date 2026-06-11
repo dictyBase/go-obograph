@@ -17,19 +17,19 @@ type Stats struct {
 // OBO graphs.
 type DataSource interface {
 	// SaveOboGraphInfo perist OBO graphs metadata in the storage
-	SaveOboGraphInfo(graph.OboGraph) error
+	SaveOboGraphInfo(grph graph.OboGraph) error
 	// UpdateOboGraphInfo update OBO graph metadata in the storage
-	UpdateOboGraphInfo(graph.OboGraph) error
+	UpdateOboGraphInfo(grph graph.OboGraph) error
 	// ExistOboGraph checks for existence of a particular OBO graph
-	ExistsOboGraph(graph.OboGraph) bool
+	ExistsOboGraph(grph graph.OboGraph) bool
 	// SaveTerms persist all terms in the storage
-	SaveTerms(graph.OboGraph) (int, error)
+	SaveTerms(grph graph.OboGraph) (int, error)
 	// UpdateTerms update existing terms in the storage
-	UpdateTerms(graph.OboGraph) (int, error)
+	UpdateTerms(grph graph.OboGraph) (int, error)
 	// SaveorUpdateTerms either insert and update terms in the storage
-	SaveOrUpdateTerms(graph.OboGraph) (*Stats, error)
+	SaveOrUpdateTerms(grph graph.OboGraph) (*Stats, error)
 	// SaveRelationships persist all relationships in the storage
-	SaveRelationships(graph.OboGraph) (int, error)
+	SaveRelationships(grph graph.OboGraph) (int, error)
 	// SaveNewRelationships skips the existing one and saves only the new relationships
-	SaveNewRelationships(graph.OboGraph) (int, error)
+	SaveNewRelationships(grph graph.OboGraph) (int, error)
 }
