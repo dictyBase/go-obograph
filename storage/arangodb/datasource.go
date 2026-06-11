@@ -14,7 +14,16 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
-const seedNo = 13
+const (
+	seedNo                  = 13
+	dbCollectionParam       = "@db_collection"
+	dbIDParam               = "db_id"
+	graphCollectionParam    = "@graph_collection"
+	termCollectionParam     = "@term_collection"
+	tempCollectionParam     = "@temp_collection"
+	relationCollectionParam = "@relationship_collection"
+	graphIDParam            = "graph_id"
+)
 
 type removeTempCollection func(tmp *arangoCollection)
 
@@ -41,7 +50,7 @@ type CollectionParams struct {
 	OboGraph string `validate:"required"`
 }
 
-func validateAll(ai ...interface{}) error {
+func validateAll(ai ...any) error {
 	validate := validator.New()
 	for _, iface := range ai {
 		if err := validate.Struct(iface); err != nil {
@@ -52,10 +61,14 @@ func validateAll(ai ...interface{}) error {
 	return nil
 }
 
-func NewDataSourceFromDb(dbh *manager.Database, collP *CollectionParams) (storage.DataSource, error) {
+func NewDataSourceFromDb(
+	dbh *manager.Database,
+	collP *CollectionParams,
+) (storage.DataSource, error) {
 	if err := validateAll(collP); err != nil {
 		return &arangoSource{}, err
 	}
+
 	col, err := CreateCollection(dbh, collP)
 	if err != nil {
 		return &arangoSource{}, err
@@ -75,6 +88,7 @@ func NewDataSource(connP *ConnectParams, collP *CollectionParams) (storage.DataS
 	if err := validateAll(connP, collP); err != nil {
 		return dsa, err
 	}
+
 	_, dbh, err := manager.NewSessionDb(&manager.ConnectParams{
 		User:     connP.User,
 		Pass:     connP.Pass,
@@ -86,6 +100,7 @@ func NewDataSource(connP *ConnectParams, collP *CollectionParams) (storage.DataS
 	if err != nil {
 		return dsa, err
 	}
+
 	col, err := CreateCollection(dbh, collP)
 	if err != nil {
 		return dsa, err
@@ -109,16 +124,16 @@ type arangoSource struct {
 }
 
 // SaveOboGraphInfo perist OBO graphs metadata in the storage.
-func (a *arangoSource) SaveOboGraphInfo(g graph.OboGraph) error {
+func (a *arangoSource) SaveOboGraphInfo(grph graph.OboGraph) error {
 	dbg := dbGraphInfo{
-		ID:       g.ID(),
-		IRI:      g.IRI(),
-		Label:    g.Label(),
-		Metadata: a.todbGraphMeta(g),
+		ID:       grph.ID(),
+		IRI:      grph.IRI(),
+		Label:    grph.Label(),
+		Metadata: a.todbGraphMeta(grph),
 	}
 	ctx := driver.WithSilent(context.Background())
-	_, err := a.graphc.CreateDocument(ctx, dbg)
 
+	_, err := a.graphc.CreateDocument(ctx, dbg)
 	if err != nil {
 		return fmt.Errorf("error in creating document %s", err)
 	}
@@ -129,13 +144,14 @@ func (a *arangoSource) SaveOboGraphInfo(g graph.OboGraph) error {
 // ExistOboGraph checks for existence of a particular OBO graph.
 func (a *arangoSource) ExistsOboGraph(g graph.OboGraph) bool {
 	count, err := a.database.CountWithParams(getd,
-		map[string]interface{}{
-			"@graph_collection": a.graphc.Name(),
-			"graph_id":          g.ID(),
+		map[string]any{
+			graphCollectionParam: a.graphc.Name(),
+			graphIDParam:         g.ID(),
 		})
 	if err != nil {
 		return false
 	}
+
 	if count > 0 {
 		return true
 	}
@@ -148,10 +164,12 @@ func (a *arangoSource) SaveTerms(grph graph.OboGraph) (int, error) {
 	if err != nil {
 		return 0, err
 	}
+
 	dbterms := make([]*dbTerm, 0)
 	for _, t := range grph.Terms() {
 		dbterms = append(dbterms, a.todbTerm(idg, t))
 	}
+
 	stat, err := a.termc.ImportDocuments(
 		context.Background(),
 		dbterms,
@@ -166,13 +184,16 @@ func (a *arangoSource) SaveTerms(grph graph.OboGraph) (int, error) {
 
 func (a *arangoSource) SaveRelationships(g graph.OboGraph) (int, error) {
 	dbrs := make([]*dbRelationship, 0)
+
 	for _, r := range g.Relationships() {
 		dbrel, err := a.todbRelationhip(r)
 		if err != nil {
 			return 0, err
 		}
+
 		dbrs = append(dbrs, dbrel)
 	}
+
 	stat, err := a.relc.ImportDocuments(
 		context.Background(),
 		dbrs,
@@ -185,7 +206,7 @@ func (a *arangoSource) SaveRelationships(g graph.OboGraph) (int, error) {
 	return int(stat.Created), nil
 }
 
-func (a *arangoSource) UpdateTerms(g graph.OboGraph) (int, error) {
+func (a *arangoSource) UpdateTerms(grph graph.OboGraph) (int, error) {
 	return 0, nil
 }
 
@@ -194,9 +215,11 @@ func (a *arangoSource) UpdateOboGraphInfo(grph graph.OboGraph) error {
 	if err != nil {
 		return err
 	}
+
 	dbg := dbGraphInfo{
 		Metadata: a.todbGraphMeta(grph),
 	}
+
 	_, err = a.graphc.UpdateDocument(
 		driver.WithSilent(context.Background()),
 		key,
@@ -213,10 +236,12 @@ func (a *arangoSource) UpdateOboGraphInfo(grph graph.OboGraph) error {
 // and returns no of new and updated terms.
 func (a *arangoSource) SaveOrUpdateTerms(grph graph.OboGraph) (*storage.Stats, error) {
 	stats := new(storage.Stats)
+
 	id, err := a.graphDocID(grph)
 	if err != nil {
 		return stats, err
 	}
+
 	tmpColl, fn, err := a.loadTermsinTemp(id, grph)
 	if err != nil {
 		return stats, err
@@ -226,20 +251,27 @@ func (a *arangoSource) SaveOrUpdateTerms(grph graph.OboGraph) (*storage.Stats, e
 	return a.manageTerms(grph, tmpColl)
 }
 
-func (a *arangoSource) manageTerms(grph graph.OboGraph, tmpColl driver.AccessTarget) (*storage.Stats, error) {
+func (a *arangoSource) manageTerms(
+	grph graph.OboGraph,
+	tmpColl driver.AccessTarget,
+) (*storage.Stats, error) {
 	stats := new(storage.Stats)
+
 	ucount, err := a.editTerms(tupdt, grph, tmpColl)
 	if err != nil {
 		return stats, err
 	}
+
 	icount, err := a.editTerms(tinst, grph, tmpColl)
 	if err != nil {
 		return stats, err
 	}
+
 	ocount, err := a.editTerms(tdelt, grph, tmpColl)
 	if err != nil {
 		return stats, err
 	}
+
 	stats.Created = icount
 	stats.Updated = ucount
 	stats.Deleted = ocount
@@ -250,22 +282,25 @@ func (a *arangoSource) manageTerms(grph graph.OboGraph, tmpColl driver.AccessTar
 // SaveNewRelationships saves only the new relationships that are absent in the storage.
 func (a *arangoSource) SaveNewRelationships(grph graph.OboGraph) (int, error) {
 	ncount := 0
+
 	tmpColl, fn, err := a.loadRelationsinTemp(grph)
 	if err != nil {
 		return ncount, err
 	}
 	defer fn(tmpColl)
-	runner, err := a.database.DoRun(rinst, map[string]interface{}{
-		"@relationship_collection": a.relc.Name(),
-		"@graph_collection":        a.graphc.Name(),
-		"@term_collection":         a.termc.Name(),
-		"@temp_collection":         tmpColl.Name(),
-		"cvterm_graph":             a.obog.Name(),
-		"graph_id":                 grph.ID(),
+
+	runner, err := a.database.DoRun(rinst, map[string]any{
+		relationCollectionParam: a.relc.Name(),
+		graphCollectionParam:    a.graphc.Name(),
+		termCollectionParam:     a.termc.Name(),
+		tempCollectionParam:     tmpColl.Name(),
+		"cvterm_graph":          a.obog.Name(),
+		graphIDParam:            grph.ID(),
 	})
 	if err != nil {
 		return ncount, fmt.Errorf("unable to run new relationships insert query %s", err)
 	}
+
 	if err := runner.Read(&ncount); err != nil {
 		return ncount, fmt.Errorf("error in reading in no of relationship insert %s", err)
 	}
@@ -302,15 +337,19 @@ func (a *arangoSource) todbTerm(idn string, trm graph.Term) *dbTerm {
 	if !trm.HasMeta() {
 		return dbt
 	}
+
 	dbm := &dbTermMeta{}
+
 	dbm.Properties = termMetaProperties(trm)
 	if len(trm.Meta().Xrefs()) > 0 {
 		var dbx []*dbMetaXref
 		for _, r := range trm.Meta().Xrefs() {
 			dbx = append(dbx, &dbMetaXref{Value: r.Value()})
 		}
+
 		dbm.Xrefs = dbx
 	}
+
 	if len(trm.Meta().Synonyms()) > 0 {
 		var dbs []*dbMetaSynonym
 		for _, syn := range trm.Meta().Synonyms() {
@@ -322,20 +361,25 @@ func (a *arangoSource) todbTerm(idn string, trm graph.Term) *dbTerm {
 				Xrefs:   syn.Xrefs(),
 			})
 		}
+
 		dbm.Synonyms = dbs
 	}
+
 	if len(trm.Meta().Comments()) > 0 {
 		dbm.Comments = trm.Meta().Comments()
 	}
+
 	if len(trm.Meta().Subsets()) > 0 {
 		dbm.Subsets = trm.Meta().Subsets()
 	}
+
 	if trm.Meta().Definition() != nil {
 		dbm.Definition = &dbMetaDefinition{
 			Value: trm.Meta().Definition().Value(),
 			Xrefs: trm.Meta().Definition().Xrefs(),
 		}
 	}
+
 	dbm.Namespace = trm.Meta().Namespace()
 	dbt.Metadata = dbm
 
@@ -344,6 +388,7 @@ func (a *arangoSource) todbTerm(idn string, trm graph.Term) *dbTerm {
 
 func (a *arangoSource) todbRelationhip(rgp graph.Relationship) (*dbRelationship, error) {
 	oMap := make(map[graph.NodeID]string)
+
 	dbr := &dbRelationship{}
 	if v, ok := oMap[rgp.Object()]; ok {
 		dbr.From = v
@@ -352,9 +397,11 @@ func (a *arangoSource) todbRelationhip(rgp graph.Relationship) (*dbRelationship,
 		if err != nil {
 			return dbr, err
 		}
+
 		oMap[rgp.Object()] = id
 		dbr.From = id
 	}
+
 	if v, ok := oMap[rgp.Subject()]; ok {
 		dbr.To = v
 	} else {
@@ -362,9 +409,11 @@ func (a *arangoSource) todbRelationhip(rgp graph.Relationship) (*dbRelationship,
 		if err != nil {
 			return dbr, err
 		}
+
 		oMap[rgp.Subject()] = id
 		dbr.To = id
 	}
+
 	if v, ok := oMap[rgp.Predicate()]; ok {
 		dbr.Predicate = v
 	} else {
@@ -372,6 +421,7 @@ func (a *arangoSource) todbRelationhip(rgp graph.Relationship) (*dbRelationship,
 		if err != nil {
 			return dbr, err
 		}
+
 		oMap[rgp.Predicate()] = id
 		dbr.Predicate = id
 	}
@@ -382,72 +432,92 @@ func (a *arangoSource) todbRelationhip(rgp graph.Relationship) (*dbRelationship,
 func (a *arangoSource) getDocID(nid graph.NodeID) (string, error) {
 	return a.graphDocQuery(
 		getid,
-		map[string]interface{}{
-			"@db_collection": a.termc.Name(),
-			"db_id":          string(nid),
-		})
+		map[string]any{
+			dbCollectionParam: a.termc.Name(),
+			dbIDParam:         string(nid),
+		},
+	)
 }
 
 func (a *arangoSource) graphDocID(g graph.OboGraph) (string, error) {
 	return a.graphDocQuery(
 		getid,
-		map[string]interface{}{
+		map[string]any{
 			"@db_collection": a.graphc.Name(),
 			"db_id":          g.ID(),
-		})
+		},
+	)
 }
 
 func (a *arangoSource) graphDocKey(g graph.OboGraph) (string, error) {
 	return a.graphDocQuery(
 		getkey,
-		map[string]interface{}{
+		map[string]any{
 			"@db_collection": a.graphc.Name(),
 			"db_id":          g.ID(),
-		})
+		},
+	)
 }
 
-func (a *arangoSource) graphDocQuery(query string, bindVars map[string]interface{}) (string, error) {
+func (a *arangoSource) graphDocQuery(
+	query string,
+	bindVars map[string]any,
+) (string, error) {
 	var ret string
+
 	res, err := a.database.GetRow(query, bindVars)
 	if err != nil {
 		return ret, err
 	}
+
 	if res.IsEmpty() {
 		return ret, errors.New("graph id is absent from database")
 	}
+
 	err = res.Read(&ret)
 
 	return ret, err
 }
 
-func (a *arangoSource) editTerms(query string, g graph.OboGraph, tmpColl driver.AccessTarget) (int, error) {
+func (a *arangoSource) editTerms(
+	query string,
+	g graph.OboGraph,
+	tmpColl driver.AccessTarget,
+) (int, error) {
 	var ocount int
-	runner, err := a.database.DoRun(query, map[string]interface{}{
-		"graph_id":          g.ID(),
-		"@graph_collection": a.graphc.Name(),
-		"@term_collection":  a.termc.Name(),
-		"@temp_collection":  tmpColl.Name(),
+
+	runner, err := a.database.DoRun(query, map[string]any{
+		graphIDParam:         g.ID(),
+		graphCollectionParam: a.graphc.Name(),
+		termCollectionParam:  a.termc.Name(),
+		tempCollectionParam:  tmpColl.Name(),
 	})
 	if err != nil {
 		return ocount, fmt.Errorf("unable to run term query %s", err)
 	}
+
 	if err := runner.Read(&ocount); err != nil {
 		return ocount, fmt.Errorf("error in reading from database %s", err)
 	}
 
 	return ocount, nil
 }
-func (a *arangoSource) loadRelationsinTemp(grph graph.OboGraph) (*arangoCollection, removeTempCollection, error) {
+
+func (a *arangoSource) loadRelationsinTemp(
+	grph graph.OboGraph,
+) (*arangoCollection, removeTempCollection, error) {
 	coll := new(arangoCollection)
 	fnc := func(tmpColl *arangoCollection) {
 		if err := tmpColl.Remove(context.Background()); err != nil {
 			log.Printf("error in removing tmp collection %s", err)
 		}
 	}
+
 	rnd, err := generate.RandString(seedNo)
 	if err != nil {
 		return coll, fnc, fmt.Errorf("error in generating random string %s", err)
 	}
+
 	tmpColl, err := a.database.CreateCollection(
 		rnd, &driver.CreateCollectionOptions{
 			Type: driver.CollectionTypeEdge,
@@ -456,14 +526,18 @@ func (a *arangoSource) loadRelationsinTemp(grph graph.OboGraph) (*arangoCollecti
 	if err != nil {
 		return coll, fnc, err
 	}
+
 	dbrs := make([]*dbRelationship, 0)
+
 	for _, r := range grph.Relationships() {
 		dbrel, err := a.todbRelationhip(r)
 		if err != nil {
 			return coll, fnc, err
 		}
+
 		dbrs = append(dbrs, dbrel)
 	}
+
 	_, err = tmpColl.ImportDocuments(
 		context.Background(),
 		dbrs,
@@ -472,32 +546,40 @@ func (a *arangoSource) loadRelationsinTemp(grph graph.OboGraph) (*arangoCollecti
 	if err != nil {
 		return coll, fnc, fmt.Errorf("error in importing document %s", err)
 	}
+
 	coll.Collection = tmpColl
 
 	return coll, fnc, nil
 }
 
-func (a *arangoSource) loadTermsinTemp(idt string, grph graph.OboGraph) (*arangoCollection, removeTempCollection, error) {
+func (a *arangoSource) loadTermsinTemp(
+	idt string,
+	grph graph.OboGraph,
+) (*arangoCollection, removeTempCollection, error) {
 	coll := new(arangoCollection)
 	fnc := func(tmpColl *arangoCollection) {
 		if err := tmpColl.Remove(context.Background()); err != nil {
 			log.Printf("error in removing tmp collection %s", err)
 		}
 	}
+
 	rnd, err := generate.RandString(seedNo)
 	if err != nil {
 		return coll, fnc, fmt.Errorf("error in generating random string %s", err)
 	}
+
 	tmpColl, err := a.database.CreateCollection(
 		rnd, &driver.CreateCollectionOptions{},
 	)
 	if err != nil {
 		return coll, fnc, fmt.Errorf("error in creating collection %s", err)
 	}
+
 	dbterms := make([]*dbTerm, 0)
 	for _, t := range grph.Terms() {
 		dbterms = append(dbterms, a.todbTerm(idt, t))
 	}
+
 	_, err = tmpColl.ImportDocuments(
 		context.Background(),
 		dbterms,
@@ -506,6 +588,7 @@ func (a *arangoSource) loadTermsinTemp(idt string, grph graph.OboGraph) (*arango
 	if err != nil {
 		return coll, fnc, fmt.Errorf("error in importing documents %s", err)
 	}
+
 	coll.Collection = tmpColl
 
 	return coll, fnc, nil
@@ -516,6 +599,7 @@ func termMetaProperties(trm graph.Term) []*dbGraphProps {
 	if len(trm.Meta().BasicPropertyValues()) == 0 {
 		return dps
 	}
+
 	for _, prop := range trm.Meta().BasicPropertyValues() {
 		dps = append(dps, &dbGraphProps{
 			Pred:  prop.Pred(),
