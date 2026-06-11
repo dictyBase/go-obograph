@@ -11,4 +11,4 @@ jobs:
           GH_TOKEN: ${{ secrets.REPO_ACCESS_TOKEN }}
         run: |
           branch_name=$(git symbolic-ref --short HEAD)
-          gh pr create --base main --title "Auto-generated Pull Request for $branch_name" --body "Pulling '$branch_name' into main. Please review and merge."
+          gh pr create --base develop --title "Auto-generated Pull Request for $branch_name" --body "Pulling '$branch_name' into main. Please review and merge."
