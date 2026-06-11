@@ -20,38 +20,38 @@ type OboGraph interface {
 	// Meta returns the associated Meta container
 	Meta() *model.Meta
 	// ExistsTerm checks for existence of a term
-	ExistsTerm(NodeID) bool
+	ExistsTerm(id NodeID) bool
 	// GetTerm fetches an existing term
-	GetTerm(NodeID) Term
+	GetTerm(id NodeID) Term
 	// GetRelationship fetches relationship(edge) between parent(object) and
 	// children(subject)
-	GetRelationship(NodeID, NodeID) Relationship
+	GetRelationship(obj NodeID, subj NodeID) Relationship
 	// Relationships returns all relationships(edges) in the graph
 	Relationships() []Relationship
 	// Terms returns all terms(node/vertex) in the graph
 	Terms() []Term
 	// TermsByType provides a filtered list of specific terms
-	TermsByType(string) []Term
+	TermsByType(rtype string) []Term
 	// Children returns all children terms(depth one)
-	Children(NodeID) []Term
+	Children(id NodeID) []Term
 	// Parents returns all parent terms(depth one)
-	Parents(NodeID) []Term
+	Parents(id NodeID) []Term
 	// Ancestors returns all reachable(direct or indirect) parent terms. It uses
 	// BFS algorithm
-	Ancestors(NodeID) []Term
+	Ancestors(id NodeID) []Term
 	// Descendents returns all reachable(direct or indirect) children terms. It uses
 	// BFS algorithm
-	Descendents(NodeID) []Term
+	Descendents(id NodeID) []Term
 	// DescendentsDFS returns all reachable(direct or indirect) children terms
 	// using DFS algorithm.
-	DescendentsDFS(NodeID) []Term
+	DescendentsDFS(id NodeID) []Term
 	// AddRelationship creates relationship between terms, it overrides the
 	// existing terms and relationship
-	AddRelationship(Term, Term, Term) error
+	AddRelationship(obj Term, subj Term, pred Term) error
 	// AddRelationshipWithID creates relationship between existing terms
-	AddRelationshipWithID(NodeID, NodeID, NodeID) error
+	AddRelationshipWithID(obj NodeID, subj NodeID, pred NodeID) error
 	// AddTerm add a new Term to the graph overwriting any existing one
-	AddTerm(Term)
+	AddTerm(t Term)
 }
 
 type graph struct {
@@ -108,6 +108,7 @@ func (g *graph) Terms() []Term {
 // TermsByType provides a filtered list of specific terms.
 func (g *graph) TermsByType(rtype string) []Term {
 	trm := make([]Term, 0)
+
 	for _, n := range g.nodes {
 		if n.RdfType() == rtype {
 			trm = append(trm, n)
@@ -120,6 +121,7 @@ func (g *graph) TermsByType(rtype string) []Term {
 // Relationships returns all relationships(edges) in the graph.
 func (g *graph) Relationships() []Relationship {
 	var rel []Relationship
+
 	for id := range g.edgesDown {
 		for k := range g.edgesDown[id] {
 			rel = append(rel, g.edgesDown[id][k])
@@ -198,6 +200,7 @@ func (g *graph) Descendents(idn NodeID) []Term {
 	qid = append(qid, idn)
 	// mark it visited
 	visited[idn] = true
+
 	for len(qid) > 0 {
 		// dequeue the first element
 		nid := qid[0]
@@ -240,6 +243,7 @@ func (g *graph) Ancestors(idn NodeID) []Term {
 	qid = append(qid, idn)
 	// mark it visited
 	visited[idn] = true
+
 	for len(qid) > 0 {
 		// dequeue
 		nid := qid[len(qid)-1]
@@ -295,6 +299,7 @@ func (g *graph) AddRelationship(obj, subj, pred Term) error {
 	g.nodes[obj.ID()] = obj
 	g.nodes[subj.ID()] = subj
 	g.nodes[pred.ID()] = pred
+
 	rel := NewRelationship(
 		obj.ID(),
 		subj.ID(),
@@ -306,6 +311,7 @@ func (g *graph) AddRelationship(obj, subj, pred Term) error {
 	} else {
 		g.edgesDown[obj.ID()] = map[NodeID]Relationship{subj.ID(): rel}
 	}
+
 	if v, ok := g.edgesUp[subj.ID()]; ok {
 		v[obj.ID()] = rel
 		g.edgesUp[subj.ID()] = v
@@ -321,12 +327,15 @@ func (g *graph) AddRelationshipWithID(obj, subj, pred NodeID) error {
 	if _, ok := g.nodes[obj]; !ok {
 		return fmt.Errorf("object node id %s does not exist", obj)
 	}
+
 	if _, ok := g.nodes[subj]; !ok {
 		return fmt.Errorf("subject node id %s does not exist", subj)
 	}
+
 	if _, ok := g.nodes[pred]; !ok {
 		return fmt.Errorf("predicate node id %s does not exist", pred)
 	}
+
 	rel := NewRelationship(
 		obj,
 		subj,
@@ -338,6 +347,7 @@ func (g *graph) AddRelationshipWithID(obj, subj, pred NodeID) error {
 	} else {
 		g.edgesDown[obj] = map[NodeID]Relationship{subj: rel}
 	}
+
 	if v, ok := g.edgesUp[subj]; ok {
 		v[obj] = rel
 		g.edgesUp[subj] = v
@@ -350,6 +360,7 @@ func (g *graph) AddRelationshipWithID(obj, subj, pred NodeID) error {
 
 func (g *graph) getTerms(id NodeID, edges map[NodeID]map[NodeID]Relationship) []Term {
 	trm := make([]Term, 0)
+
 	if _, ok := g.nodes[id]; ok {
 		for nid := range edges[id] {
 			trm = append(trm, g.nodes[nid])
