@@ -59,6 +59,7 @@ func (n *node) IsDeprecated() bool {
 	if !n.HasMeta() {
 		return false
 	}
+
 	if len(n.meta.BasicPropertyValues()) > 0 {
 		for _, p := range n.meta.BasicPropertyValues() {
 			if strings.HasSuffix(p.Pred(), "#deprecated") {
