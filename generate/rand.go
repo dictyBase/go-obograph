@@ -8,12 +8,14 @@ import (
 func stringWithCharset(strSize int) (string, error) {
 	charSet := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	lsc := len(charSet)
+
 	bys := make([]byte, strSize)
 	if _, err := rand.Read(bys); err != nil {
 		return "", fmt.Errorf("error in reading random data %s", err)
 	}
+
 	for k, v := range bys {
-		bys[k] = charSet[v%byte(lsc)]
+		bys[k] = charSet[int(v)%lsc]
 	}
 
 	return string(bys), nil
