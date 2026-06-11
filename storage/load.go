@@ -20,10 +20,12 @@ type UploadInformation struct {
 // LoadOboJSONFromDataSource loads obojson from a given reader and datasource for storage.
 func LoadOboJSONFromDataSource(r io.Reader, dsr DataSource) (*UploadInformation, error) {
 	info := &UploadInformation{}
+
 	grph, err := graph.BuildGraph(r)
 	if err != nil {
 		return info, fmt.Errorf("error in building graph %s", err)
 	}
+
 	if dsr.ExistsOboGraph(grph) {
 		return persistExistOboGraph(dsr, grph)
 	}
@@ -36,14 +38,17 @@ func persistExistOboGraph(dsr DataSource, grph graph.OboGraph) (*UploadInformati
 	if err := dsr.UpdateOboGraphInfo(grph); err != nil {
 		return info, fmt.Errorf("error in updating graph information %s", err)
 	}
+
 	trs, err := dsr.SaveOrUpdateTerms(grph)
 	if err != nil {
 		return info, fmt.Errorf("error in updating terms %s", err)
 	}
+
 	rn, err := dsr.SaveNewRelationships(grph)
 	if err != nil {
 		return info, fmt.Errorf("error in saving relationships %s", err)
 	}
+
 	info.TermStats = trs
 	info.RelationStats = rn
 
@@ -55,14 +60,17 @@ func persistNewOboGraph(dsr DataSource, grph graph.OboGraph) (*UploadInformation
 	if err := dsr.SaveOboGraphInfo(grph); err != nil {
 		return info, fmt.Errorf("error in saving graph information %s", err)
 	}
+
 	trm, err := dsr.SaveTerms(grph)
 	if err != nil {
 		return info, fmt.Errorf("error in saving terms %s", err)
 	}
+
 	rn, err := dsr.SaveRelationships(grph)
 	if err != nil {
 		return info, fmt.Errorf("error in saving relationships %s", err)
 	}
+
 	info.TermStats = &Stats{Created: trm}
 	info.RelationStats = rn
 
