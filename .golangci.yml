@@ -1,81 +1,74 @@
-linters-settings:
-   lll:
-      line-length: 130
-   revive:
-      rules:
-        - name: var-naming
-          arguments: [["ID"]]
-   gosec:
-      excludes:
-        - G404
-   wrapcheck:
-      ignorePackageGlobs:
-        - github.com/dictyBase/aphgrpc
-        - github.com/dictyBase/arangomanager
-        - github.com/arangodb/go-driver
+version: "2"
+run:
+  allow-parallel-runners: true
 linters:
-  # inverted configuration with `enable-all` and `disable` is not scalable during updates of golangci-lint
-  disable-all: true
+  default: none
   enable:
     - asciicheck
-    - bodyclose
     - bidichk
-    - cyclop 
+    - bodyclose
+    - copyloopvar
+    - cyclop
     - decorder
-    - depguard
     - dogsled
-    - dupl
-    - errcheck
-    - errname
     - funlen
-    - gci
-    - gochecknoinits
+    - funcorder
     - goconst
-    - gocritic
     - gocyclo
-    - godot
-    - gofmt
-    - goimports
     - gosec
-    - gosimple
     - govet
     - gocognit
-    - gomnd 
-    - gomoddirectives
-    - gomodguard
-    - grouper
+    - godoclint
+    - intrange
     - ineffassign
     - importas
+    - inamedparam
+    - interfacebloat
     - lll
+    - loggercheck
     - maintidx
     - misspell
+    - mnd
+    - modernize
     - nakedret
     - nestif
-    - nilerr
-    - nlreturn
-    - nolintlint
-    - prealloc
-    - paralleltest
-    - predeclared
+    - protogetter
     - revive
-    - rowserrcheck
+    - recvcheck
     - staticcheck
-    - typecheck
+    - testifylint
+    - modernize
     - unconvert
-    - thelper
-    - tparallel
+    - usestdlibvars
     - unparam
     - unused
-    - unconvert
-    - unparam
-    - varnamelen
-    - wastedassign
     - whitespace
-    - wrapcheck
-
-  # don't enable:
-  # - godox
-  # - maligned,prealloc
-  # - gochecknoglobals
-  # - golint
-  #  - forcetypeassert
+    - wsl_v5
+  settings:
+    funlen:
+      lines: 120
+      statements: 50
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
+      - internal/baserow/
+      - internal/k8s/
+formatters:
+  enable:
+    - gofumpt
+    - goimports
+    - golines
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
