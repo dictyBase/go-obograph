@@ -20,6 +20,7 @@ type OntoCollection struct {
 func (oc *OntoCollection) docCollection() error {
 	dbh := oc.dbh
 	collP := oc.collP
+
 	termc, err := dbh.FindOrCreateCollection(
 		collP.Term,
 		&driver.CreateCollectionOptions{},
@@ -27,6 +28,7 @@ func (oc *OntoCollection) docCollection() error {
 	if err != nil {
 		return err
 	}
+
 	relc, err := dbh.FindOrCreateCollection(
 		collP.Relationship,
 		&driver.CreateCollectionOptions{Type: driver.CollectionTypeEdge},
@@ -34,6 +36,7 @@ func (oc *OntoCollection) docCollection() error {
 	if err != nil {
 		return err
 	}
+
 	graphc, err := dbh.FindOrCreateCollection(
 		collP.GraphInfo,
 		&driver.CreateCollectionOptions{},
@@ -41,6 +44,7 @@ func (oc *OntoCollection) docCollection() error {
 	if err != nil {
 		return err
 	}
+
 	oc.Term = termc
 	oc.Rel = relc
 	oc.Cv = graphc
@@ -51,26 +55,31 @@ func (oc *OntoCollection) docCollection() error {
 func (oc *OntoCollection) graphAndIndex() error {
 	dbh := oc.dbh
 	collP := oc.collP
+
 	obog, err := dbh.FindOrCreateGraph(
 		collP.OboGraph,
 		[]driver.EdgeDefinition{{
 			Collection: oc.Rel.Name(),
 			From:       []string{oc.Term.Name()},
 			To:         []string{oc.Term.Name()},
-		}})
+		}},
+	)
 	if err != nil {
 		return err
 	}
+
 	_, _, err = oc.Term.EnsurePersistentIndex(
 		context.Background(),
 		[]string{"label"},
 		&driver.EnsurePersistentIndexOptions{
 			Name:         "label-idx",
 			InBackground: true,
-		})
+		},
+	)
 	if err != nil {
 		return fmt.Errorf("error in creating index %s", err)
 	}
+
 	oc.Obog = obog
 
 	return nil
@@ -83,6 +92,7 @@ func CreateCollection(dbh *manager.Database, collP *CollectionParams) (*OntoColl
 	if err := ocn.docCollection(); err != nil {
 		return ocn, err
 	}
+
 	if err := ocn.graphAndIndex(); err != nil {
 		return ocn, err
 	}
