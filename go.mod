@@ -5,7 +5,7 @@ require (
 	github.com/dictyBase/arangomanager v0.4.0
 	github.com/go-playground/validator/v10 v10.30.3
 	github.com/repeale/fp-go v0.11.1
-	github.com/sirupsen/logrus v1.10.0
+	github.com/sirupsen/logrus v1.10.1
 	github.com/stretchr/testify v1.12.1
 	github.com/urfave/cli v1.22.17
 )
